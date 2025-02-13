@@ -1,0 +1,29 @@
+import { Search, Bell, Settings, HelpCircle } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+
+export function TopNav() {
+  return (
+    <header className="border-b border-border bg-background px-6 py-3">
+      <div className="flex items-center justify-between">
+        <div className="relative w-96">
+          <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input placeholder="Search" className="pl-8" />
+        </div>
+        <div className="flex items-center gap-4">
+          <Bell className="h-5 w-5 text-muted-foreground" />
+          <Settings className="h-5 w-5 text-muted-foreground" />
+          <HelpCircle className="h-5 w-5 text-muted-foreground" />
+          <div className="flex items-center gap-2">
+            <Avatar>
+              <AvatarImage src="/placeholder.svg?height=32&width=32" />
+              <AvatarFallback>JD</AvatarFallback>
+            </Avatar>
+            <span>Jane</span>
+          </div>
+        </div>
+      </div>
+    </header>
+  )
+}
+

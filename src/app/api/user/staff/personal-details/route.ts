@@ -1,5 +1,5 @@
-import { ApiError, ApiErrors } from '@/app/utils/ApiError';
-import { ApiSuccess, HTTP_STATUS } from '@/app/utils/ApiSuccess';
+import { ApiError, ApiErrors } from '@/utils/ApiError';
+import { ApiSuccess, HTTP_STATUS } from '@/utils/ApiSuccess';
 import  prisma  from '@/lib/prisma';
 
 
