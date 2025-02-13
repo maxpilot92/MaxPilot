@@ -1,34 +1,39 @@
-import { ApiError, ApiErrors } from '@/app/utils/ApiError';
-import { ApiSuccess, HTTP_STATUS } from '@/app/utils/ApiSuccess';
-import prisma from '@/lib/prisma';
-import { validateRequiredFields } from '../route';
+import { ApiError, ApiErrors } from "@/app/utils/ApiError";
+import { ApiSuccess, HTTP_STATUS } from "@/app/utils/ApiSuccess";
+import prisma from "@/lib/prisma";
+import { validateRequiredFields } from "../route";
+import { NextRequest } from "next/server";
 
 // GET single record
-export async function GET(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function GET(request: NextRequest) {
   try {
+    const url = new URL(request.url);
+    const splittedUrl = url.toString().split('/')
+    const id = splittedUrl.at(-1);
+
+    if (!id) {
+      return ApiError(
+        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
+      );
+    }
+
     const personalDetails = await prisma.personalDetails.findUnique({
-      where: { id: params.id },
+      where: { id },
     });
 
     if (!personalDetails) {
-      throw new ApiErrors(
-        HTTP_STATUS.NOT_FOUND,
-        'Personal details not found'
-      );
+      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Personal details not found");
     }
 
     return ApiSuccess(
       personalDetails,
-      'Personal details retrieved successfully'
+      "Personal details retrieved successfully"
     );
   } catch (error: unknown) {
-    console.error('Error in GET personal details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+    console.error("Error in GET personal details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     if (error instanceof ApiErrors) {
@@ -37,23 +42,28 @@ export async function GET(
     return ApiError(
       new ApiErrors(
         HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        'Error fetching personal details'
+        "Error fetching personal details"
       )
     );
   }
 }
 
 // PUT update record
-export async function PUT(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+export async function PUT(request: NextRequest) {
   try {
     const data = await request.json();
     validateRequiredFields(data);
+    const url = new URL(request.url);
+    const splittedUrl = url.toString().split('/')
+    const id = splittedUrl.at(-1);
 
+    if (!id) {
+      return ApiError(
+        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
+      );
+    }
     const updatedPersonalDetails = await prisma.personalDetails.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...data,
         dob: new Date(data.dob),
@@ -62,35 +72,29 @@ export async function PUT(
 
     return ApiSuccess(
       updatedPersonalDetails,
-      'Personal details updated successfully'
+      "Personal details updated successfully"
     );
   } catch (error: unknown) {
-    console.error('Error in PUT personal details:', {
-      name: error instanceof Error ? error.name : 'Unknown',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined
+    console.error("Error in PUT personal details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
     });
 
     if (error instanceof ApiErrors) {
       return ApiError(error);
     }
-    
-    if (error && typeof error === 'object' && 'code' in error) {
-      if (error.code === 'P2025') {
+
+    if (error && typeof error === "object" && "code" in error) {
+      if (error.code === "P2025") {
         return ApiError(
-          new ApiErrors(
-            HTTP_STATUS.NOT_FOUND,
-            'Personal details not found'
-          )
+          new ApiErrors(HTTP_STATUS.NOT_FOUND, "Personal details not found")
         );
       }
     }
 
     return ApiError(
-      new ApiErrors(
-        HTTP_STATUS.BAD_REQUEST,
-        'Error updating personal details'
-      )
+      new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error updating personal details")
     );
   }
 }
