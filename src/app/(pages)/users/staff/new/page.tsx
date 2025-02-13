@@ -6,7 +6,7 @@ import React from "react";
 export default function page() {
   return (
     <div className="flex h-screen bg-background">
-      <SideNav />
+      <SideNav /> 
       <main className="flex-1 overflow-auto">
         <TopNav />
         <div className="p-6">
