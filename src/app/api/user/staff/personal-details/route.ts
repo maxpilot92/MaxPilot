@@ -3,7 +3,7 @@ import { ApiSuccess, HTTP_STATUS } from '@/app/utils/ApiSuccess';
 import  prisma  from '@/lib/prisma';
 
 
-interface PersonalDetailsInput {
+export interface PersonalDetailsInput {
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -15,7 +15,7 @@ interface PersonalDetailsInput {
   gender?: string;
 }
 
-export function validateRequiredFields(data: PersonalDetailsInput): void {
+function validateRequiredFields(data: PersonalDetailsInput): void {
   const requiredFields = ['fullName', 'email', 'phoneNumber', 'dob', 'address', 'emergencyContact'];
   const missingFields: string[] = [];
 

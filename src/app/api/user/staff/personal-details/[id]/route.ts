@@ -1,8 +1,27 @@
 import { ApiError, ApiErrors } from "@/app/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/app/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
-import { validateRequiredFields } from "../route";
 import { NextRequest } from "next/server";
+import { PersonalDetailsInput } from "../route";
+
+function validateRequiredFields(data: PersonalDetailsInput): void {
+  const requiredFields = ['fullName', 'email', 'phoneNumber', 'dob', 'address', 'emergencyContact'];
+  const missingFields: string[] = [];
+
+  for (const field of requiredFields) {
+    if (!data[field as keyof PersonalDetailsInput]) {
+      missingFields.push(field);
+    }
+  }
+
+  if (missingFields.length > 0) {
+    throw new ApiErrors(
+      HTTP_STATUS.BAD_REQUEST,
+      'Required fields missing',
+      { fields: missingFields }
+    );
+  }
+}
 
 // GET single record
 export async function GET(request: NextRequest) {
