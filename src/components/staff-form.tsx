@@ -21,7 +21,6 @@ import {
 import { useEffect } from "react";
 import axios from "axios"
 import { useRouter } from "next/navigation";
-import { useToast } from "@/hooks/use-toast";
 
 export function StaffForm() {
   const form = useForm<PersonalDetailsFormValues>({
@@ -36,7 +35,6 @@ export function StaffForm() {
   const {
     formState: { errors },
   } = form;
-  const {toast} = useToast()
   useEffect(() => {
     console.log(errors);
   }, [errors]);
@@ -48,9 +46,7 @@ export function StaffForm() {
       router.push(`/users/staff/${response.data.data.id}`)
     } catch (error) {
       // Handle error
-      toast({
-        title: 'Failed'
-      })
+      
       console.error(error);
     }
   }
