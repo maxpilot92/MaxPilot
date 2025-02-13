@@ -48,23 +48,23 @@ model Staff {
   personalDetailsId String
   personalDetails   PersonalDetails @relation(fields: [personalDetailsId], references: [id])
   workDetailsId     String
-  workDetails       WorkDetails     @relation(fields: [workDetailsId], references: [id]) 
+  workDetails       WorkDetails     @relation(fields: [workDetailsId], references: [id])
+  archived          Boolean
   createdAt         DateTime        @default(now())
   updatedAt         DateTime        @updatedAt
 }
 
-
 model PersonalDetails {
-  id               String       @id @default(uuid())
+  id               String        @id @default(uuid())
   fullName         String
-  email            String       @unique
-  phoneNumber      String       @unique
+  email            String        @unique
+  phoneNumber      String        @unique
   address          String
   dob              DateTime
   emergencyContact String
   language         String?
-  nationality      String
-  gender           GenderStatus
+  nationality      String?
+  gender           GenderStatus?
   Staff            Staff[]
 }
 
@@ -75,7 +75,7 @@ model WorkDetails {
   role           RoleStatus
   employmentType EmploymentTypeStatus
   teams          Team[]               @relation("WorkDetailsTeams")
-  Staff            Staff[]
+  Staff          Staff[]
 }
 
 model Team {
