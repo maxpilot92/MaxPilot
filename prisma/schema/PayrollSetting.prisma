@@ -1,0 +1,7 @@
+model PayrollSettings {
+    id            String @id @default(uuid())
+    staffId       String @unique
+    bankName      String
+    accountNumber String
+    taxCode       String
+}

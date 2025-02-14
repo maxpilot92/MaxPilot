@@ -4,8 +4,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StaffForm } from "./staff-form";
 import { StaffProfile } from "./staff-profile";
 import { StaffSettings } from "./staff-settings";
+import { StaffInput } from "@/types/staff/staff";
 
-export function StaffTabs() {
+export function StaffTabs({ data }: { data: StaffInput }) {
   return (
     <Tabs defaultValue="profile" className="w-full max-w-[1200px] mx-auto">
       <TabsList className="mb-4">
@@ -14,7 +15,7 @@ export function StaffTabs() {
         <TabsTrigger value="settings">Settings</TabsTrigger>
       </TabsList>
       <TabsContent value="profile">
-        <StaffProfile />
+        <StaffProfile data={data} />
       </TabsContent>
       <TabsContent value="form">
         <StaffForm />

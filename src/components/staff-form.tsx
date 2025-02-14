@@ -7,6 +7,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   Form,
   FormControl,
   FormField,
@@ -18,9 +25,9 @@ import {
   personalDetailsSchema,
   type PersonalDetailsFormValues,
 } from "@/lib/schema";
-import { useEffect } from "react";
-import axios from "axios"
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import axios from "axios";
 
 export function StaffForm() {
   const form = useForm<PersonalDetailsFormValues>({
@@ -31,7 +38,7 @@ export function StaffForm() {
       nationality: "",
     },
   });
-  const router = useRouter()
+  const router = useRouter();
   const {
     formState: { errors },
   } = form;
@@ -41,12 +48,16 @@ export function StaffForm() {
 
   async function onSubmit(data: PersonalDetailsFormValues) {
     try {
-      const response = await axios.post("/api/user/staff/personal-details", data)
-      console.log(response)
-      router.push(`/users/staff/${response.data.data.id}`)
+      console.log(data);
+      const response = await axios.post(
+        "/api/user/staff/personal-details",
+        data
+      );
+      console.log(response);
+      router.push(`/users/staff/${response.data.data.id}`);
     } catch (error) {
       // Handle error
-      
+
       console.error(error);
     }
   }
@@ -164,9 +175,21 @@ export function StaffForm() {
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Language</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter your Language" {...field} />
-                      </FormControl>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your language" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="en">English</SelectItem>
+                          <SelectItem value="es">Spanish</SelectItem>
+                          <SelectItem value="fr">French</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -232,6 +255,134 @@ export function StaffForm() {
                           </div>
                         </RadioGroup>
                       </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          </section>
+
+          <section className="rounded-lg border border-border p-6">
+            <h2 className="mb-4 text-lg font-medium">Work Details</h2>
+            <div className="grid gap-6">
+              <FormField
+                control={form.control}
+                name="worksAt"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Works At</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Enter your company name" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="hiredOn"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Hired On</FormLabel>
+                      <FormControl>
+                        <Input type="date" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="role"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Role</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose your role" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="Carer">Carer</SelectItem>
+                          <SelectItem value="Admin">Admin</SelectItem>
+                          <SelectItem value="Coordinator">
+                            Coordinator
+                          </SelectItem>
+                          <SelectItem value="HR">HR</SelectItem>
+                          <SelectItem value="OfficeSupport">
+                            OfficeSupport
+                          </SelectItem>
+                          <SelectItem value="Ops">Ops</SelectItem>
+                          <SelectItem value="Kiosk">Kiosk</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="employmentType"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Employment Type</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose your employment type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="FullTime">Full Time</SelectItem>
+                          <SelectItem value="PartTime">Part Time</SelectItem>
+                          <SelectItem value="Casual">Casual</SelectItem>
+                          <SelectItem value="Contractor">Contractor</SelectItem>
+                          <SelectItem value="Others">Others</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                <FormField
+                  control={form.control}
+                  name="team"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Team</FormLabel>
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select your team" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="engineering">
+                            Engineering
+                          </SelectItem>
+                          <SelectItem value="design">Design</SelectItem>
+                          <SelectItem value="product">Product</SelectItem>
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}

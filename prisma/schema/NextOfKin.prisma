@@ -1,0 +1,7 @@
+model NextOfKin {
+    id       String @id @default(uuid())
+    staffId  String @unique
+    name     String
+    relation String
+    contact  String
+}

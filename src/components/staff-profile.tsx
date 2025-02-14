@@ -1,12 +1,32 @@
-"use client"
+"use client";
 
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Calendar, FileText, MessageSquare, Clock, PenSquare } from 'lucide-react'
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import {
+  Calendar,
+  FileText,
+  MessageSquare,
+  Clock,
+  PenSquare,
+} from "lucide-react";
+import { StaffData } from "@/types/staff/staff";
 
-export function StaffProfile() {
+export function StaffProfile({ data }: { data: StaffData }) {
+  const {
+    personalDetails: {
+      address,
+      dob,
+      email,
+      emergencyContact,
+      fullName,
+      phoneNumber,
+      gender,
+      language,
+    },
+    workDetails: { employmentType, hiredOn, role, worksAt },
+  } = data;
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className="md:col-span-2 space-y-6">
@@ -14,14 +34,21 @@ export function StaffProfile() {
         <div className="flex items-center gap-4 p-4 bg-background rounded-lg border">
           <Avatar className="h-16 w-16">
             <AvatarImage src="/placeholder.svg?height=64&width=64" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarFallback>
+              <Avatar></Avatar>
+            </AvatarFallback>
           </Avatar>
           <div>
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-semibold">Jane Doe</h2>
-              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">Active</Badge>
+              <h2 className="text-xl font-semibold">{fullName}</h2>
+              <Badge
+                variant="secondary"
+                className="bg-emerald-100 text-emerald-700"
+              >
+                Active
+              </Badge>
             </div>
-            <p className="text-muted-foreground">Carer</p>
+            <p className="text-muted-foreground">{role}</p>
           </div>
         </div>
 
@@ -38,35 +65,35 @@ export function StaffProfile() {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h4 className="font-medium mb-2">Name</h4>
-                <p className="text-muted-foreground">Jane Doe</p>
+                <p className="text-muted-foreground">{fullName}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Phone Number</h4>
-                <p className="text-muted-foreground">9800000000</p>
+                <p className="text-muted-foreground">{phoneNumber}</p>
               </div>
               <div>
-                <h4 className="font-medium mb-2">E-mail</h4>
-                <p className="text-muted-foreground">janedoe@gmail.com</p>
+                <h4 className="font-medium mb-2">Email</h4>
+                <p className="text-muted-foreground">{email}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Address</h4>
-                <p className="text-muted-foreground">Kalanki</p>
+                <p className="text-muted-foreground">{address}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Gender</h4>
-                <p className="text-muted-foreground">Female</p>
+                <p className="text-muted-foreground">{gender}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">DOB</h4>
-                <p className="text-muted-foreground">2001-05-29</p>
+                <p className="text-muted-foreground">{dob}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Language</h4>
-                <p className="text-muted-foreground">English</p>
+                <p className="text-muted-foreground">{language}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Emergency Contact</h4>
-                <p className="text-muted-foreground">9800000011</p>
+                <p className="text-muted-foreground">{emergencyContact}</p>
               </div>
             </div>
           </CardContent>
@@ -85,23 +112,23 @@ export function StaffProfile() {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <h4 className="font-medium mb-2">Works At</h4>
-                <p className="text-muted-foreground">ABC Company</p>
+                <p className="text-muted-foreground">{worksAt}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Hired On</h4>
-                <p className="text-muted-foreground">December 24, 2024</p>
+                <p className="text-muted-foreground">{hiredOn}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Role</h4>
-                <p className="text-muted-foreground">Carer</p>
+                <p className="text-muted-foreground">{role}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Employment Type</h4>
-                <p className="text-muted-foreground">Full Time</p>
+                <p className="text-muted-foreground">{employmentType}</p>
               </div>
               <div>
                 <h4 className="font-medium mb-2">Team</h4>
-                <p className="text-muted-foreground">ABC Team</p>
+                <p className="text-muted-foreground"></p>
               </div>
             </div>
           </CardContent>
@@ -172,5 +199,5 @@ export function StaffProfile() {
         </Card>
       </div>
     </div>
-  )
+  );
 }

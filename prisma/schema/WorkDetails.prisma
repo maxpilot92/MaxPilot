@@ -1,0 +1,9 @@
+model WorkDetails {
+    id             String               @id @default(uuid())
+    worksAt        String
+    hiredOn        DateTime
+    role           RoleStatus
+    employmentType EmploymentTypeStatus
+    teams          Team[]               @relation("WorkDetailsTeams")
+    Staff          Staff[]
+}
