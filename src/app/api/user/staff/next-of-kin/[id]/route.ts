@@ -1,9 +1,18 @@
 import prisma from "@/lib/prisma";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
+
+// Define types for the request body
+interface NextOfKinRequestBody {
+  name: string;
+  email: string;
+  relation: string;
+  contact: string;
+}
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as NextOfKinRequestBody;
     const { name, email, relation, contact } = body;
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
@@ -33,12 +42,14 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ data: nextOfKin }, { status: 201 });
-  } catch (error: any) {
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Email or Staff ID already exists" },
-        { status: 400 }
-      );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { error: "Email or Staff ID already exists" },
+          { status: 400 }
+        );
+      }
     }
     return NextResponse.json(
       { error: "Internal server error" },
@@ -47,15 +58,16 @@ export async function POST(request: NextRequest) {
   }
 }
 
-// GET
 export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
     const staffId = splittedUrl.at(-1);
+
     if (!staffId) {
       return NextResponse.json({ message: "Staff id is required" });
     }
+
     const nextOfKin = await prisma.nextOfKin.findUnique({
       where: {
         staffId: staffId,
@@ -68,13 +80,15 @@ export async function GET(request: NextRequest) {
         { status: 404 }
       );
     }
-    console.log("running");
+
     return NextResponse.json({
       data: nextOfKin,
-      message: "next of kin retrived successfully",
+      message: "next of kin retrieved successfully",
     });
   } catch (error) {
-    console.log(error);
+    if (error instanceof Error) {
+      console.log(error.message);
+    }
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
@@ -82,10 +96,9 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// PUT /api/staff/[staffId]
 export async function PUT(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = (await request.json()) as NextOfKinRequestBody;
     const { name, email, relation, contact } = body;
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
@@ -94,6 +107,7 @@ export async function PUT(request: NextRequest) {
     if (!staffId) {
       return NextResponse.json({ message: "Staff id is required" });
     }
+
     // Validate required fields
     if (!name || !email || !relation || !contact) {
       return NextResponse.json(
@@ -135,18 +149,20 @@ export async function PUT(request: NextRequest) {
       data: updatedNextOfKin,
       message: "Next of kin updated successfully",
     });
-  } catch (error: any) {
-    if (error.code === "P2025") {
-      return NextResponse.json(
-        { error: "Staff member not found" },
-        { status: 404 }
-      );
-    }
-    if (error.code === "P2002") {
-      return NextResponse.json(
-        { error: "Email already exists" },
-        { status: 400 }
-      );
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === "P2025") {
+        return NextResponse.json(
+          { error: "Staff member not found" },
+          { status: 404 }
+        );
+      }
+      if (error.code === "P2002") {
+        return NextResponse.json(
+          { error: "Email already exists" },
+          { status: 400 }
+        );
+      }
     }
     return NextResponse.json(
       { error: "Internal server error" },
