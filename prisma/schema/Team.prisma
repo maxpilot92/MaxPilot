@@ -1,6 +1,0 @@
-model Team {
-    id          String        @id @default(uuid())
-    name        String
-    workDetails WorkDetails[] @relation("WorkDetailsTeams")
-    createdAt   DateTime      @default(now())
-}

@@ -6,26 +6,7 @@ import { NextRequest } from "next/server";
 // Type for gender
 type GenderStatus = "Male" | "Female";
 
-// Type for role
-type RoleStatus =
-  | "Carer"
-  | "Admin"
-  | "Coordinator"
-  | "HR"
-  | "OfficeSupport"
-  | "Ops"
-  | "Kiosk"
-  | "Others";
-
-// Type for Employment status
-type EmploymentTypeStatus =
-  | "FullTime"
-  | "PartTime"
-  | "Casual"
-  | "Contractor"
-  | "Others";
-
-interface StaffInputFlat {
+interface PersonalDetailsInput {
   fullName: string;
   email: string;
   phoneNumber: string;
@@ -35,14 +16,9 @@ interface StaffInputFlat {
   language?: string;
   nationality?: string;
   gender?: GenderStatus;
-  worksAt: string;
-  hiredOn: string;
-  role: RoleStatus;
-  employmentType: EmploymentTypeStatus;
-  team: string;
 }
 
-function validatePersonalDetails(data: StaffInputFlat): void {
+function validatePersonalDetails(data: PersonalDetailsInput): void {
   const requiredFields = [
     "fullName",
     "email",
@@ -53,7 +29,7 @@ function validatePersonalDetails(data: StaffInputFlat): void {
   ];
 
   const missingFields = requiredFields.filter(
-    (field) => !data[field as keyof StaffInputFlat]
+    (field) => !data[field as keyof PersonalDetailsInput]
   );
 
   if (missingFields.length > 0) {
@@ -80,39 +56,10 @@ function validatePersonalDetails(data: StaffInputFlat): void {
   }
 }
 
-function validateWorkDetails(data: StaffInputFlat): void {
-  const requiredFields = [
-    "worksAt",
-    "hiredOn",
-    "role",
-    "employmentType",
-    "team",
-  ];
-
-  const missingFields = requiredFields.filter(
-    (field) => !data[field as keyof StaffInputFlat]
-  );
-
-  if (missingFields.length > 0) {
-    throw new ApiErrors(
-      HTTP_STATUS.BAD_REQUEST,
-      "Required work details missing",
-      {
-        fields: missingFields,
-      }
-    );
-  }
-
-  // Validate hire date
-  const hiredOn = new Date(data.hiredOn);
-  if (isNaN(hiredOn.getTime())) {
-    throw new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Invalid hire date format");
-  }
-}
-
-// GET single staff record with all details
-export async function GET(request: NextRequest) {
+// PUT update personal details
+export async function PUT(request: NextRequest) {
   try {
+    const data: PersonalDetailsInput = await request.json();
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
     const id = splittedUrl.at(-1);
@@ -123,15 +70,14 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    // Validate personal details
+    validatePersonalDetails(data);
+
+    // Find the staff member first
     const staff = await prisma.staff.findUnique({
       where: { id },
       include: {
         personalDetails: true,
-        workDetails: {
-          include: {
-            teams: true,
-          },
-        },
       },
     });
 
@@ -139,106 +85,28 @@ export async function GET(request: NextRequest) {
       throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Staff member not found");
     }
 
-    return ApiSuccess(staff, "Staff details retrieved successfully");
-  } catch (error: unknown) {
-    console.error("Error in GET staff details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
+    // Update personal details
+    const updatedPersonalDetails = await prisma.personalDetails.update({
+      where: { id: staff.personalDetailsId },
+      data: {
+        fullName: data.fullName,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        address: data.address,
+        dob: new Date(data.dob),
+        emergencyContact: data.emergencyContact,
+        language: data.language,
+        nationality: data.nationality,
+        gender: data.gender,
+      },
     });
 
-    if (error instanceof ApiErrors) {
-      return ApiError(error);
-    }
-
-    return ApiError(
-      new ApiErrors(
-        HTTP_STATUS.INTERNAL_SERVER_ERROR,
-        "Error fetching staff details"
-      )
+    return ApiSuccess(
+      updatedPersonalDetails,
+      "Personal details updated successfully"
     );
-  }
-}
-
-// PUT update staff record
-export async function PUT(request: NextRequest) {
-  try {
-    const data: StaffInputFlat = await request.json();
-    const url = new URL(request.url);
-    const splittedUrl = url.toString().split("/");
-    const id = splittedUrl.at(-1);
-
-    if (!id) {
-      return ApiError(
-        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
-      );
-    }
-
-    // Validate both personal and work details
-    validatePersonalDetails(data);
-    validateWorkDetails(data);
-
-    // Update staff record with related details using transaction
-    const updatedStaff = await prisma.$transaction(async (prisma) => {
-      const staff = await prisma.staff.findUnique({
-        where: { id },
-        include: {
-          personalDetails: true,
-          workDetails: true,
-        },
-      });
-
-      if (!staff) {
-        throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Staff member not found");
-      }
-
-      // Update personal details
-      const personalDetails = await prisma.personalDetails.update({
-        where: { id: staff.personalDetailsId },
-        data: {
-          fullName: data.fullName,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          address: data.address,
-          dob: new Date(data.dob),
-          emergencyContact: data.emergencyContact,
-          language: data.language,
-          nationality: data.nationality,
-          gender: data.gender,
-        },
-      });
-
-      // Update work details
-      const workDetails = await prisma.workDetails.update({
-        where: { id: staff.workDetailsId },
-        data: {
-          worksAt: data.worksAt,
-          hiredOn: new Date(data.hiredOn),
-          role: data.role,
-          employmentType: data.employmentType,
-          // teams: {
-          //   set: { id: data.team },
-          // },
-        },
-      });
-
-      // Return updated staff with all relations
-      return await prisma.staff.findUnique({
-        where: { id },
-        include: {
-          personalDetails: true,
-          workDetails: {
-            include: {
-              teams: true,
-            },
-          },
-        },
-      });
-    });
-
-    return ApiSuccess(updatedStaff, "Staff details updated successfully");
   } catch (error: unknown) {
-    console.error("Error in PUT staff details:", {
+    console.error("Error in PUT personal details:", {
       name: error instanceof Error ? error.name : "Unknown",
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
@@ -264,7 +132,55 @@ export async function PUT(request: NextRequest) {
     }
 
     return ApiError(
-      new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error updating staff details")
+      new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error updating personal details")
+    );
+  }
+}
+
+// DELETE personal details
+export async function DELETE(request: NextRequest) {
+  try {
+    const url = new URL(request.url);
+    const splittedUrl = url.toString().split("/");
+    const id = splittedUrl.at(-1);
+
+    if (!id) {
+      return ApiError(
+        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
+      );
+    }
+
+    // Find the staff member first
+    const staff = await prisma.staff.findUnique({
+      where: { id },
+      include: {
+        personalDetails: true,
+      },
+    });
+
+    if (!staff) {
+      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Staff member not found");
+    }
+
+    // Delete personal details
+    await prisma.personalDetails.delete({
+      where: { id: staff.personalDetailsId },
+    });
+
+    return ApiSuccess(null, "Personal details deleted successfully");
+  } catch (error: unknown) {
+    console.error("Error in DELETE personal details:", {
+      name: error instanceof Error ? error.name : "Unknown",
+      message: error instanceof Error ? error.message : "Unknown error",
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
+    if (error instanceof ApiErrors) {
+      return ApiError(error);
+    }
+
+    return ApiError(
+      new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error deleting personal details")
     );
   }
 }

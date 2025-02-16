@@ -1,6 +1,0 @@
-model Settings {
-    id                   String  @id @default(uuid())
-    staffId              String  @unique
-    notificationsEnabled Boolean @default(true)
-    theme                String  @default("light")
-}

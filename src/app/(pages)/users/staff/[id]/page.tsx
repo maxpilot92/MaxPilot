@@ -1,13 +1,13 @@
 "use client";
 import { StaffTabs } from "@/components/staff-tabs";
-import { StaffInput } from "@/types/staff/staff";
+import { StaffData } from "@/types/staff/staff";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function Page() {
   const params = useParams();
-  const [data, setData] = useState<StaffInput | null>(null);
+  const [data, setData] = useState<StaffData | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -17,11 +17,8 @@ export default function Page() {
         setLoading(true);
         setError(null);
 
-        // Log the ID to ensure it's correct
-        console.log("Fetching data for ID:", params.id);
-
         const response = await axios.get(
-          `/api/user/staff/personal-details/${params.id}`,
+          `/api/user/staff/staff-details/${params.id}`,
           {
             // Add headers if needed
             headers: {

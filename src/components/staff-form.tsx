@@ -22,6 +22,15 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Upload } from "lucide-react";
+import {
   personalDetailsSchema,
   type PersonalDetailsFormValues,
 } from "@/lib/schema";
@@ -33,31 +42,37 @@ export function StaffForm() {
   const form = useForm<PersonalDetailsFormValues>({
     resolver: zodResolver(personalDetailsSchema),
     defaultValues: {
-      gender: "Female",
+      fullName: "",
+      phoneNumber: "",
+      email: "",
+      dob: "",
+      address: "",
+      emergencyContact: "",
+      gender: undefined,
       language: "",
       nationality: "",
+      employmentType: "",
+      role: "",
+      team: "",
+      worksAt: "",
+      hiredOn: "",
     },
   });
+
   const router = useRouter();
   const {
     formState: { errors },
   } = form;
+
   useEffect(() => {
     console.log(errors);
   }, [errors]);
 
   async function onSubmit(data: PersonalDetailsFormValues) {
     try {
-      console.log(data);
-      const response = await axios.post(
-        "/api/user/staff/personal-details",
-        data
-      );
-      console.log(response);
+      const response = await axios.post("/api/user/staff/staff-details", data);
       router.push(`/users/staff/${response.data.data.id}`);
     } catch (error) {
-      // Handle error
-
       console.error(error);
     }
   }
@@ -318,7 +333,7 @@ export function StaffForm() {
                           </SelectItem>
                           <SelectItem value="HR">HR</SelectItem>
                           <SelectItem value="OfficeSupport">
-                            OfficeSupport
+                            Office Support
                           </SelectItem>
                           <SelectItem value="Ops">Ops</SelectItem>
                           <SelectItem value="Kiosk">Kiosk</SelectItem>
@@ -389,6 +404,36 @@ export function StaffForm() {
                 />
               </div>
             </div>
+          </section>
+
+          <section className="rounded-lg border border-border p-6">
+            <h2 className="mb-4 text-lg font-medium">Compliance</h2>
+            <div className="mb-4 overflow-hidden rounded-lg border border-border">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Category</TableHead>
+                    <TableHead>Expires</TableHead>
+                    <TableHead>Last Update</TableHead>
+                    <TableHead>Status</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      className="text-center text-muted-foreground"
+                      colSpan={4}
+                    >
+                      No documents are currently available
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+            <Button type="button" variant="outline" className="gap-2">
+              <Upload className="h-4 w-4" />
+              Upload File
+            </Button>
           </section>
 
           <div className="flex justify-end gap-4">
