@@ -44,7 +44,6 @@ export function EditNextOfKinDialog({
   onSave,
 }: EditNextOfKinDialogProps) {
   const [open, setOpen] = useState(false);
-  const [fetchedData, setFetchedData] = useState<NextOfKin | null>(null);
 
   const form = useForm<NextOfKinFormValues>({
     resolver: zodResolver(nextOfKinSchema),
@@ -65,7 +64,6 @@ export function EditNextOfKinDialog({
       try {
         const response = await axios.get(`/api/user/staff/next-of-kin/${id}`);
         const nextOfKinData = response.data.data;
-        setFetchedData(nextOfKinData);
 
         // Update form values with fetched data
         form.reset({
