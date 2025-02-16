@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,7 @@ import { EditWorkDetailsDialog } from "./edit-work-details-dialog";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import type {
+  NextOfKin,
   PersonalDetails,
   StaffData,
   WorkDetails,
@@ -32,9 +33,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
+import { EditNextOfKinDialog } from "./edit-next-of-kin-dialog";
 
 export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const [data, setData] = useState(initialData);
+  const [nextOfKin, setNextOfKin] = useState<NextOfKin>();
   const { toast } = useToast();
 
   const handleSavePersonalDetails = async (
@@ -107,6 +110,55 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
       toast({
         title: "Error",
         description: "Failed to update work details. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  useEffect(() => {
+    const getNextOfKin = async () => {
+      try {
+        const response = await axios.get(
+          `/api/user/staff/next-of-kin/${data.id}`
+        );
+        console.log(response);
+        setNextOfKin(response.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    };
+
+    getNextOfKin();
+  }, []);
+
+  const handleSaveNextOfKin = async (updatedData: Partial<NextOfKin>) => {
+    try {
+      const response = await axios.put(
+        `/api/user/staff/next-of-kin/${data.id}`,
+        updatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setNextOfKin((prev) => ({
+        ...prev!,
+        ...updatedData,
+      }));
+
+      toast({
+        title: "Success",
+        description: "Next of kin details updated successfully",
+      });
+
+      console.log("API response:", response.data);
+    } catch (error) {
+      console.error("Error updating next of kin:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update next of kin details. Please try again.",
         variant: "destructive",
       });
     }
@@ -443,28 +495,36 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Next Of Kin</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary">
-              <PenSquare className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
+            <EditNextOfKinDialog
+              data={nextOfKin}
+              onSave={handleSaveNextOfKin}
+            />
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
               <div>
                 <h4 className="text-sm font-medium mb-1">Name</h4>
-                <p className="text-muted-foreground">Sita</p>
+                <p className="text-muted-foreground">
+                  {nextOfKin ? nextOfKin.name : ""}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Relation</h4>
-                <p className="text-muted-foreground">Mother</p>
+                <p className="text-muted-foreground">
+                  {nextOfKin ? nextOfKin.relation : ""}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Contact</h4>
-                <p className="text-muted-foreground">9800000022</p>
+                <p className="text-muted-foreground">
+                  {nextOfKin ? nextOfKin.contact : ""}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Email</h4>
-                <p className="text-muted-foreground">sita@gmail.com</p>
+                <p className="text-muted-foreground">
+                  {nextOfKin ? nextOfKin.email : ""}
+                </p>
               </div>
             </div>
           </CardContent>

@@ -69,3 +69,12 @@ export interface StaffData {
   workDetails: WorkDetails;
   workDetailsId: string;
 }
+
+export interface NextOfKin {
+  name: string;
+  email: string;
+  relation: string;
+  contact: string;
+  staffId: string;
+  id: string;
+}

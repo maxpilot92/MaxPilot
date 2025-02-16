@@ -57,6 +57,7 @@ model NextOfKin {
     name     String
     relation String
     contact  String
+    email    String @unique
 }
 
 model PayrollSettings {
