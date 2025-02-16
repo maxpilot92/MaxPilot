@@ -39,6 +39,25 @@ interface WorkDetailsInput {
   team: string;
 }
 
+interface TeamConnect {
+  id: string;
+}
+
+// Interface for team update operations
+interface TeamUpdateOperation {
+  set: TeamConnect[];
+  connect: TeamConnect[];
+}
+
+// Interface for work details update data
+interface WorkDetailsUpdateInput {
+  worksAt: string;
+  hiredOn: Date;
+  role: RoleStatus;
+  employmentType: EmploymentTypeStatus;
+  teams?: TeamUpdateOperation;
+}
+
 function validateWorkDetails(data: WorkDetailsInput): void {
   const requiredFields = ["worksAt", "hiredOn", "role", "employmentType"];
 
@@ -160,7 +179,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Prepare update data
-    const updateData: any = {
+    const updateData: WorkDetailsUpdateInput = {
       worksAt: data.worksAt,
       hiredOn: new Date(data.hiredOn),
       role: data.role,

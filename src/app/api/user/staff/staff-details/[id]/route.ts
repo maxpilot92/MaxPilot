@@ -193,7 +193,7 @@ export async function PUT(request: NextRequest) {
       }
 
       // Update personal details
-      const personalDetails = await prisma.personalDetails.update({
+      await prisma.personalDetails.update({
         where: { id: staff.personalDetailsId },
         data: {
           fullName: data.fullName,
@@ -209,7 +209,7 @@ export async function PUT(request: NextRequest) {
       });
 
       // Update work details
-      const workDetails = await prisma.workDetails.update({
+      await prisma.workDetails.update({
         where: { id: staff.workDetailsId },
         data: {
           worksAt: data.worksAt,
