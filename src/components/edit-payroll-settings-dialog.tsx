@@ -20,7 +20,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { PenSquare, SettingsIcon } from "lucide-react";
+import { PenSquare } from "lucide-react";
 import { z } from "zod";
 import {
   Select,

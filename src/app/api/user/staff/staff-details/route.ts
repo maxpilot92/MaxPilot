@@ -1,8 +1,8 @@
 import { ApiError, ApiErrors } from "@/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
-import { FilterParams } from "@/types/filterStaff";
 import { NextRequest, NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 
 // Type for gender
 type GenderStatus = "Male" | "Female";
@@ -44,24 +44,7 @@ interface StaffInputFlat {
   team: string;
 }
 
-interface StaffFilterWhere {
-  personalDetails?: {
-    gender?: {
-      equals: GenderStatus;
-    };
-  };
-  workDetails?: {
-    role?: {
-      equals: RoleStatus;
-    };
-    employmentType?: {
-      equals: EmploymentTypeStatus;
-    };
-    teams?: {
-      has: string;
-    };
-  };
-}
+type StaffWhere = Prisma.StaffWhereInput;
 
 function validatePersonalDetails(data: StaffInputFlat): void {
   const requiredFields = [
@@ -267,8 +250,7 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    // @ts-ignore
-    const where: any = {};
+    const where = {} as any;
 
     // Add gender filter
     if (gender) {
