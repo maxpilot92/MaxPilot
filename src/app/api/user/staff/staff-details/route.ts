@@ -235,6 +235,26 @@ export async function POST(request: Request) {
 
 export const dynamic = "force-dynamic";
 
+// Define interface for where clause
+interface StaffWhereInput {
+  personalDetails?: {
+    gender?: {
+      equals: string;
+    };
+  };
+  workDetails?: {
+    role?: {
+      equals: string;
+    };
+    employmentType?: {
+      equals: string;
+    };
+    teams?: {
+      has: string;
+    };
+  };
+}
+
 export async function GET(request: NextRequest) {
   try {
     // Get query parameters
@@ -249,15 +269,12 @@ export async function GET(request: NextRequest) {
     // Calculate pagination
     const skip = (page - 1) * limit;
 
-    // Build where clause
-    // @ts-ignore
-    const where = {};
+    // Build where clause with proper typing
+    const where: StaffWhereInput = {};
 
     // Add gender filter
     if (gender) {
-      // @ts-ignore
       where.personalDetails = {
-        // @ts-ignore
         ...where.personalDetails,
         gender: { equals: gender },
       };
@@ -265,9 +282,7 @@ export async function GET(request: NextRequest) {
 
     // Add role filter
     if (role) {
-      // @ts-ignore
       where.workDetails = {
-        // @ts-ignore
         ...where.workDetails,
         role: { equals: role },
       };
@@ -275,9 +290,7 @@ export async function GET(request: NextRequest) {
 
     // Add employmentType filter
     if (employmentType) {
-      // @ts-ignore
       where.workDetails = {
-        // @ts-ignore
         ...where.workDetails,
         employmentType: { equals: employmentType },
       };
@@ -285,9 +298,7 @@ export async function GET(request: NextRequest) {
 
     // Add team filter
     if (team) {
-      // @ts-ignore
       where.workDetails = {
-        // @ts-ignore
         ...where.workDetails,
         teams: { has: team },
       };
@@ -296,7 +307,7 @@ export async function GET(request: NextRequest) {
     // Get staff data with filters
     const [staff, total] = await Promise.all([
       prisma.staff.findMany({
-        where,
+        where: where as Prisma.StaffWhereInput,
         include: {
           personalDetails: true,
           workDetails: true,
@@ -307,7 +318,9 @@ export async function GET(request: NextRequest) {
           createdAt: "desc",
         },
       }),
-      prisma.staff.count({ where }),
+      prisma.staff.count({
+        where: where as Prisma.StaffWhereInput,
+      }),
     ]);
 
     return NextResponse.json({
