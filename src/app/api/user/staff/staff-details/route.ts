@@ -44,8 +44,6 @@ interface StaffInputFlat {
   team: string;
 }
 
-type StaffWhere = Prisma.StaffWhereInput;
-
 function validatePersonalDetails(data: StaffInputFlat): void {
   const requiredFields = [
     "fullName",
