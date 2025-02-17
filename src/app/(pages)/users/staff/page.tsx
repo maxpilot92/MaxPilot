@@ -43,7 +43,7 @@ export default function StaffListPage() {
   const [pagination, setPagination] = useState<PaginationMetadata>({
     total: 0,
     page: 1,
-    limit: 10,
+    limit: 5,
     totalPages: 1,
   });
   const [loading, setLoading] = useState(true);
@@ -56,7 +56,7 @@ export default function StaffListPage() {
 
       const queryParams: Record<string, string> = {
         page: currentPage.toString(),
-        limit: "10",
+        limit: "5",
       };
 
       // Add filters to query params if they exist
