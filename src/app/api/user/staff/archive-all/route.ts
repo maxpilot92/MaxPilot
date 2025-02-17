@@ -1,13 +1,13 @@
 // app/api/user/staff/archive-all/route.ts
 import prisma from "@/lib/prisma";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
 
 export const dynamic = "force-dynamic";
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
     // Start a transaction to ensure all updates complete or none do
-    const archivedStaff = await prisma.$transaction(async (tx) => {
+    prisma.$transaction(async (tx) => {
       // Get all active staff IDs
       const activeStaff = await tx.staff.findMany({
         where: {
@@ -44,7 +44,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       status: "success",
-      data: archivedStaff,
     });
   } catch (error) {
     console.error("Error archiving staff:", error);
