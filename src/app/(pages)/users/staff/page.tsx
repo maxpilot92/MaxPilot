@@ -26,6 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { StaffData } from "@/types/staff/staff";
 import { FilterParams } from "@/types/filterStaff";
+import { ArchiveAll } from "@/components/archive-all-dialog";
 
 interface PaginationMetadata {
   total: number;
@@ -101,7 +102,7 @@ export default function StaffListPage() {
   const handleArchiveAll = async () => {
     try {
       // Implement archive functionality
-      console.log("Archiving all staff");
+      await axios.get("/api/user/staff/archive-all");
       setShowArchiveDialog(false);
       toast({
         title: "Success",
@@ -255,7 +256,7 @@ export default function StaffListPage() {
         </Pagination>
       </div>
 
-      <AlertDialog
+      <ArchiveAll
         open={showArchiveDialog}
         onOpenChange={setShowArchiveDialog}
         title="Archive Staffs?"
