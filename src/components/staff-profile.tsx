@@ -19,11 +19,13 @@ import { EditWorkDetailsDialog } from "./edit-work-details-dialog";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import type {
-  NextOfKin,
   PersonalDetails,
   StaffData,
   WorkDetails,
+  NextOfKin,
+  PayrollSettings,
 } from "@/types/staff/staff";
+import { EditPayrollSettingsDialog } from "./edit-payroll-settings-dialog";
 import {
   Table,
   TableBody,
@@ -34,10 +36,13 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { EditNextOfKinDialog } from "./edit-next-of-kin-dialog";
+import { AlertDialog } from "./alert-dialog";
 
 export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const [data, setData] = useState(initialData);
   const [nextOfKin, setNextOfKin] = useState<NextOfKin>();
+  const [payrollData, setPayrollData] = useState<PayrollSettings>();
+  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const { toast } = useToast();
 
   const handleSavePersonalDetails = async (
@@ -79,7 +84,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
   };
 
   const handleSaveWorkDetails = async (updatedData: Partial<WorkDetails>) => {
-    console.log(updatedData);
     try {
       const response = await axios.put(
         `/api/user/staff/work-details/${data.id}`,
@@ -164,6 +168,62 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
     }
   };
 
+  const handleSavePayrollSettings = async (
+    updatedData: Partial<PayrollSettings>
+  ) => {
+    try {
+      const response = await axios.put(
+        `/api/user/staff/payroll-settings/${data.id}`,
+        updatedData,
+        {
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      setPayrollData((prevData) => ({
+        ...prevData,
+        payrollSettings: {
+          ...updatedData,
+        },
+      }));
+
+      toast({
+        title: "Success",
+        description: "Payroll settings updated successfully",
+      });
+
+      console.log("API response:", response.data);
+    } catch (error) {
+      console.error("Error updating payroll settings:", error);
+      toast({
+        title: "Error",
+        description: "Failed to update payroll settings. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleArchiveStaff = async () => {
+    try {
+      await axios.put(`/api/user/staff/manage-archive/${data.id}`, data);
+
+      toast({
+        title: "Success",
+        description: "Staff archived successfully",
+      });
+
+      // Optionally redirect to staff list or update UI
+    } catch (error) {
+      console.error("Error archiving staff:", error);
+      toast({
+        title: "Error",
+        description: "Failed to archive staff. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
   return (
     <div className="grid grid-cols-[1fr_300px] gap-6">
       <div className="space-y-6">
@@ -281,58 +341,78 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between">
             <CardTitle>Payroll Settings</CardTitle>
-            <Button variant="ghost" size="sm" className="text-primary">
-              <PenSquare className="h-4 w-4 mr-1" />
-              Edit
-            </Button>
+            <EditPayrollSettingsDialog
+              data={payrollData}
+              onSave={handleSavePayrollSettings}
+            />
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-3 gap-x-12 gap-y-6">
               <div>
                 <h4 className="text-sm font-medium mb-1">Industry Award</h4>
-                <p className="text-muted-foreground">None</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.industryAward || "None"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Award Level</h4>
-                <p className="text-muted-foreground">None</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.awardLevel || "None"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">
                   Award Level Pay Point
                 </h4>
-                <p className="text-muted-foreground">None</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.awardLevelPay || "None"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Pay Group</h4>
-                <p className="text-muted-foreground">Default Casual</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.payGroup || "Default Casual"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">
                   Pay Group Review Date
                 </h4>
-                <p className="text-muted-foreground">None</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.payGroupReviewDate || "None"}
+                </p>
               </div>
               <div>
-                <h4 className="text-sm font-medium mb-1">Employee Profile</h4>
-                <p className="text-muted-foreground">None</p>
+                x<h4 className="text-sm font-medium mb-1">Employee Profile</h4>
+                <p className="text-muted-foreground">
+                  {payrollData?.employeeProfile || "None"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Allowance</h4>
-                <p className="text-muted-foreground">Full Time</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.allowances || "None"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Daily Hours</h4>
-                <p className="text-muted-foreground">10</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.dailyHours || "0"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Weekly Hours</h4>
-                <p className="text-muted-foreground">38</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.weeklyHours || "0"}
+                </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">
                   External System Identifier
                 </h4>
-                <p className="text-muted-foreground">Full Time</p>
+                <p className="text-muted-foreground">
+                  {payrollData?.externalSystemIdentifier || "None"}
+                </p>
               </div>
             </div>
           </CardContent>
@@ -455,9 +535,23 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
               </a>{" "}
               to perform the action.
             </p>
-            <Button variant="destructive">Archive Staff</Button>
+            <Button
+              variant="destructive"
+              onClick={() => setShowArchiveDialog(true)}
+            >
+              Archive Staff
+            </Button>
           </CardContent>
         </Card>
+
+        <AlertDialog
+          open={showArchiveDialog}
+          onOpenChange={setShowArchiveDialog}
+          title="Archive Staffs?"
+          description="Are you sure you want to archive all staff members? Once archived, they will no longer appear in your list."
+          onConfirm={handleArchiveStaff}
+          onCancel={() => setShowArchiveDialog(false)}
+        />
       </div>
 
       {/* Right Sidebar */}
@@ -505,25 +599,25 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
               <div>
                 <h4 className="text-sm font-medium mb-1">Name</h4>
                 <p className="text-muted-foreground">
-                  {nextOfKin ? nextOfKin.name : ""}
+                  {nextOfKin ? nextOfKin?.name : ""}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Relation</h4>
                 <p className="text-muted-foreground">
-                  {nextOfKin ? nextOfKin.relation : ""}
+                  {nextOfKin ? nextOfKin?.relation : ""}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Contact</h4>
                 <p className="text-muted-foreground">
-                  {nextOfKin ? nextOfKin.contact : ""}
+                  {nextOfKin ? nextOfKin?.contact : ""}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Email</h4>
                 <p className="text-muted-foreground">
-                  {nextOfKin ? nextOfKin.email : ""}
+                  {nextOfKin ? nextOfKin?.email : ""}
                 </p>
               </div>
             </div>

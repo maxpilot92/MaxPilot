@@ -68,6 +68,7 @@ export interface StaffData {
   updatedAt: string; // or use `Date` if you plan to convert it to a Date object
   workDetails: WorkDetails;
   workDetailsId: string;
+  archived: boolean;
 }
 
 export interface NextOfKin {
@@ -77,4 +78,17 @@ export interface NextOfKin {
   contact: string;
   staffId: string;
   id: string;
+}
+
+export interface PayrollSettings {
+  industryAward?: string;
+  awardLevel?: string;
+  awardLevelPay?: string;
+  payGroup?: string;
+  payGroupReviewDate?: string;
+  employeeProfile?: string;
+  allowances?: string;
+  dailyHours?: number;
+  weeklyHours?: number;
+  externalSystemIdentifier?: string;
 }

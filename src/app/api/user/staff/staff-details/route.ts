@@ -1,6 +1,8 @@
 import { ApiError, ApiErrors } from "@/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
+import { FilterParams } from "@/types/filterStaff";
+import { NextRequest, NextResponse } from "next/server";
 
 // Type for gender
 type GenderStatus = "Male" | "Female";
@@ -40,6 +42,25 @@ interface StaffInputFlat {
   role: RoleStatus;
   employmentType: EmploymentTypeStatus;
   team: string;
+}
+
+interface StaffFilterWhere {
+  personalDetails?: {
+    gender?: {
+      equals: GenderStatus;
+    };
+  };
+  workDetails?: {
+    role?: {
+      equals: RoleStatus;
+    };
+    employmentType?: {
+      equals: EmploymentTypeStatus;
+    };
+    teams?: {
+      has: string;
+    };
+  };
 }
 
 function validatePersonalDetails(data: StaffInputFlat): void {
@@ -223,6 +244,101 @@ export async function POST(request: Request) {
 
     return ApiError(
       new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error creating staff member")
+    );
+  }
+}
+
+// app/api/user/staff/staff-details/route.ts
+
+export const dynamic = "force-dynamic";
+
+export async function GET(request: NextRequest) {
+  try {
+    // Get query parameters
+    const searchParams = request.nextUrl.searchParams;
+    const gender = searchParams.get("gender");
+    const role = searchParams.get("role");
+    const employmentType = searchParams.get("employmentType");
+    const team = searchParams.get("team");
+    const page = parseInt(searchParams.get("page") || "1");
+    const limit = parseInt(searchParams.get("limit") || "10");
+
+    // Calculate pagination
+    const skip = (page - 1) * limit;
+
+    // Build where clause
+    // @ts-ignore
+    const where: any = {};
+
+    // Add gender filter
+    if (gender) {
+      where.personalDetails = {
+        ...where.personalDetails,
+        gender: { equals: gender },
+      };
+    }
+
+    // Add role filter
+    if (role) {
+      where.workDetails = {
+        ...where.workDetails,
+        role: { equals: role },
+      };
+    }
+
+    // Add employmentType filter
+    if (employmentType) {
+      where.workDetails = {
+        ...where.workDetails,
+        employmentType: { equals: employmentType },
+      };
+    }
+
+    // Add team filter
+    if (team) {
+      where.workDetails = {
+        ...where.workDetails,
+        teams: { has: team },
+      };
+    }
+
+    // Get staff data with filters
+    const [staff, total] = await Promise.all([
+      prisma.staff.findMany({
+        where,
+        include: {
+          personalDetails: true,
+          workDetails: true,
+        },
+        skip,
+        take: limit,
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+      prisma.staff.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      status: "success",
+      data: {
+        data: staff,
+        meta: {
+          total,
+          page,
+          limit,
+          totalPages: Math.ceil(total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching staff:", error);
+    return NextResponse.json(
+      {
+        status: "error",
+        message: "Failed to fetch staff data",
+      },
+      { status: 500 }
     );
   }
 }
