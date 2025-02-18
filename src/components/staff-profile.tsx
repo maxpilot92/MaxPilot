@@ -82,7 +82,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
       });
     }
   };
-
+  console.log(data);
   const handleSaveWorkDetails = async (updatedData: Partial<WorkDetails>) => {
     try {
       const response = await axios.put(

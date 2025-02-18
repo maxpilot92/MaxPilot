@@ -183,11 +183,7 @@ export async function POST(request: Request) {
         },
         include: {
           personalDetails: true,
-          workDetails: {
-            include: {
-              teams: true,
-            },
-          },
+          workDetails: true,
         },
       });
     });

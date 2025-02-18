@@ -127,11 +127,7 @@ export async function GET(request: NextRequest) {
       where: { id },
       include: {
         personalDetails: true,
-        workDetails: {
-          include: {
-            teams: true,
-          },
-        },
+        workDetails: true,
       },
     });
 
@@ -227,11 +223,7 @@ export async function PUT(request: NextRequest) {
         where: { id },
         include: {
           personalDetails: true,
-          workDetails: {
-            include: {
-              teams: true,
-            },
-          },
+          workDetails: true,
         },
       });
     });
