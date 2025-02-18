@@ -235,6 +235,7 @@ export const dynamic = "force-dynamic";
 
 // Define interface for where clause
 interface StaffWhereInput {
+  archived: boolean;
   personalDetails?: {
     gender?: {
       equals: string;
@@ -268,7 +269,9 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause with proper typing
-    const where: StaffWhereInput = {};
+    const where: StaffWhereInput = {
+      archived: false,
+    };
 
     // Add gender filter
     if (gender) {

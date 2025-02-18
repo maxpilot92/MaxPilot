@@ -9,11 +9,12 @@ export default function StaffLayout({
 }) {
   return (
     <div className="flex h-screen bg-background">
-      <SideNav />
-      <main className="flex-1 overflow-auto">
-        <TopNav />
-        <div className="p-6">{children}</div>
-      </main>
+      <SideNav>
+        <main className="flex-1 overflow-auto">
+          <TopNav />
+          <div className="p-6">{children}</div>
+        </main>
+      </SideNav>
     </div>
   );
 }

@@ -1,11 +1,11 @@
-import { Search, Bell, Settings, HelpCircle } from "lucide-react"
-import { Input } from "@/components/ui/input"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
+import { Search, Bell, Settings, HelpCircle } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 export function TopNav() {
   return (
-    <header className="border-b border-border bg-background px-6 py-3">
-      <div className="flex items-center justify-between">
+    <header className="shadow-md bg-background px-6 py-3 h-[88px]">
+      <div className="flex items-center justify-between h-full">
         <div className="relative w-96">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input placeholder="Search" className="pl-8" />
@@ -24,6 +24,5 @@ export function TopNav() {
         </div>
       </div>
     </header>
-  )
+  );
 }
-
