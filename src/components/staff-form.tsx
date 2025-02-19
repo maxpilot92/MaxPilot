@@ -35,8 +35,9 @@ import {
   type PersonalDetailsFormValues,
 } from "@/lib/schema";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
+import { Team } from "@/types/staff/staff";
 
 export function StaffForm() {
   const form = useForm<PersonalDetailsFormValues>({
@@ -58,6 +59,7 @@ export function StaffForm() {
       hiredOn: "",
     },
   });
+  const [teams, setTeams] = useState<Team[]>([]);
 
   const router = useRouter();
   const {
@@ -76,6 +78,19 @@ export function StaffForm() {
       console.error(error);
     }
   }
+
+  // get all teams
+  useEffect(() => {
+    async function getAllTeam() {
+      try {
+        const response = await axios.get("/api/user/staff/team");
+        setTeams(response.data.data);
+      } catch (error) {
+        console.log(error);
+      }
+    }
+    getAllTeam();
+  }, []);
 
   return (
     <div className="max-w-[800px] mx-auto">
@@ -391,11 +406,18 @@ export function StaffForm() {
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          <SelectItem value="engineering">
+                          {/* <SelectItem value="engineering">
                             Engineering
                           </SelectItem>
                           <SelectItem value="design">Design</SelectItem>
-                          <SelectItem value="product">Product</SelectItem>
+                          <SelectItem value="product">Product</SelectItem> */}
+
+                          {teams &&
+                            teams.map((team) => (
+                              <SelectItem key={team.id} value={team.name}>
+                                {team.name}
+                              </SelectItem>
+                            ))}
                         </SelectContent>
                       </Select>
                       <FormMessage />

@@ -49,7 +49,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
     updatedData: Partial<PersonalDetails>
   ) => {
     try {
-      const response = await axios.put(
+      await axios.put(
         `/api/user/staff/personal-details/${data.id}`,
         updatedData,
         {
@@ -71,8 +71,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         title: "Success",
         description: "Personal details updated successfully",
       });
-
-      console.log("API response:", response.data);
     } catch (error) {
       console.error("Error updating personal details:", error);
       toast({
@@ -82,18 +80,14 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
       });
     }
   };
-  console.log(data);
+
   const handleSaveWorkDetails = async (updatedData: Partial<WorkDetails>) => {
     try {
-      const response = await axios.put(
-        `/api/user/staff/work-details/${data.id}`,
-        updatedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.put(`/api/user/staff/work-details/${data.id}`, updatedData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       setData((prevData) => ({
         ...prevData,
@@ -107,8 +101,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         title: "Success",
         description: "Work details updated successfully",
       });
-
-      console.log("API response:", response.data);
     } catch (error) {
       console.error("Error updating work details:", error);
       toast({
@@ -125,7 +117,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         const response = await axios.get(
           `/api/user/staff/next-of-kin/${data.id}`
         );
-        console.log(response);
         setNextOfKin(response.data.data);
       } catch (error) {
         console.log(error);
@@ -137,15 +128,11 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
 
   const handleSaveNextOfKin = async (updatedData: Partial<NextOfKin>) => {
     try {
-      const response = await axios.put(
-        `/api/user/staff/next-of-kin/${data.id}`,
-        updatedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.put(`/api/user/staff/next-of-kin/${data.id}`, updatedData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       setNextOfKin((prev) => ({
         ...prev!,
@@ -156,8 +143,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         title: "Success",
         description: "Next of kin details updated successfully",
       });
-
-      console.log("API response:", response.data);
     } catch (error) {
       console.error("Error updating next of kin:", error);
       toast({
@@ -172,7 +157,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
     updatedData: Partial<PayrollSettings>
   ) => {
     try {
-      const response = await axios.put(
+      await axios.put(
         `/api/user/staff/payroll-settings/${data.id}`,
         updatedData,
         {
@@ -193,8 +178,6 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
         title: "Success",
         description: "Payroll settings updated successfully",
       });
-
-      console.log("API response:", response.data);
     } catch (error) {
       console.error("Error updating payroll settings:", error);
       toast({
@@ -208,7 +191,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const handleArchiveStaff = async () => {
     try {
       await axios.put(`/api/user/staff/manage-archive/${data.id}`, data);
-
+      setShowArchiveDialog(false);
       toast({
         title: "Success",
         description: "Staff archived successfully",

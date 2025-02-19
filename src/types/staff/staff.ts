@@ -92,3 +92,9 @@ export interface PayrollSettings {
   weeklyHours?: number;
   externalSystemIdentifier?: string;
 }
+
+export interface Team {
+  id: string;
+  name: string;
+  workDetails: WorkDetails;
+}

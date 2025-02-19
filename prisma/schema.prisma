@@ -82,16 +82,15 @@ model Staff {
     workDetailsId     String
     workDetails       WorkDetails     @relation(fields: [workDetailsId], references: [id])
     archived          Boolean         @default(false)
-    teams             Team[]          @relation("StaffTeams")
     createdAt         DateTime        @default(now())
     updatedAt         DateTime        @updatedAt
 }
 
 model Team {
-    id        String   @id @default(uuid())
-    name      String
-    staff     Staff[]  @relation("StaffTeams")
-    createdAt DateTime @default(now())
+    id          String        @id @default(uuid())
+    name        String        @unique
+    workDetails WorkDetails[] @relation("TeamWorkDetails")
+    createdAt   DateTime      @default(now())
 }
 
 model WorkDetails {
@@ -100,7 +99,11 @@ model WorkDetails {
     hiredOn        DateTime
     role           RoleStatus
     employmentType EmploymentTypeStatus
+    teamId         String? // Optional team reference
+    team           Team?                @relation("TeamWorkDetails", fields: [teamId], references: [id])
     Staff          Staff[]
+
+    @@index([teamId])
 }
 
 model PersonalDetails {

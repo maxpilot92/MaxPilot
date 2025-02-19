@@ -114,7 +114,7 @@ export async function GET(request: NextRequest) {
       include: {
         workDetails: {
           include: {
-            teams: true,
+            team: true,
           },
         },
       },
@@ -198,9 +198,6 @@ export async function PUT(request: NextRequest) {
     const updatedWorkDetails = await prisma.workDetails.update({
       where: { id: staff.workDetailsId },
       data: updateData,
-      include: {
-        teams: true,
-      },
     });
 
     return ApiSuccess(updatedWorkDetails, "Work details updated successfully");

@@ -163,8 +163,10 @@ export default function TeamsPage() {
 
     try {
       const staffIds = teamMembers.map((teamMember) => teamMember.id);
-      console.log(staffIds, teamName);
-      await axios.post("/api/user/staff/team", { name: teamName, staffIds });
+      await axios.post("/api/user/staff/team", {
+        name: teamName,
+        staffIds,
+      });
       toast({
         title: "Success",
         description: "Team saved successfully",
