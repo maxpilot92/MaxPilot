@@ -90,13 +90,7 @@ function validatePersonalDetails(data: StaffInputFlat): void {
 }
 
 function validateWorkDetails(data: StaffInputFlat): void {
-  const requiredFields = [
-    "worksAt",
-    "hiredOn",
-    "role",
-    "employmentType",
-    "team",
-  ];
+  const requiredFields = ["worksAt", "hiredOn", "role", "employmentType"];
 
   const missingFields = requiredFields.filter(
     (field) => !data[field as keyof StaffInputFlat]
