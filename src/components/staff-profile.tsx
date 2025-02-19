@@ -124,7 +124,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
     };
 
     getNextOfKin();
-  }, []);
+  }, [data.id]);
 
   const handleSaveNextOfKin = async (updatedData: Partial<NextOfKin>) => {
     try {

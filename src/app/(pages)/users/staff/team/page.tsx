@@ -97,7 +97,7 @@ export default function TeamsPage() {
 
   useEffect(() => {
     fetchTeams();
-  }, [currentPage, debouncedSearchQuery]); //This line was already correct.  No change needed.
+  }, [currentPage, debouncedSearchQuery, fetchTeams]); //This line was already correct.  No change needed.
 
   const handleDeleteTeam = async () => {
     if (!selectedTeam) return;
@@ -178,14 +178,17 @@ export default function TeamsPage() {
                 </TableCell>
               </TableRow>
             ) : (
-              teams.map((team) => (
+              teams.map((team, idx) => (
                 <TableRow key={team.id}>
                   <TableCell>{team.name}</TableCell>
                   <TableCell>{team.staff.length}</TableCell>
                   <TableCell>
-                    <div key={team.name} className="flex -space-x-2 ">
-                      {team.staff.map((detail) => (
-                        <div className="bg-black text-white rounded px-4 py-2">
+                    <div key={idx} className="flex -space-x-2 ">
+                      {team.staff.map((detail, id) => (
+                        <div
+                          key={id}
+                          className="bg-black text-white rounded px-4 py-2"
+                        >
                           {detail.fullName}
                         </div>
                       ))}

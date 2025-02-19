@@ -121,7 +121,7 @@ export default function StaffListPage() {
   // Fetch initial data
   useEffect(() => {
     fetchStaff();
-  }, [filters]);
+  }, [filters, fetchStaff]);
 
   // Reset to first page when search query changes
   useEffect(() => {
