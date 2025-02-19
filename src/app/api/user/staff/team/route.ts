@@ -106,33 +106,58 @@ export async function POST(req: NextRequest) {
 }
 
 // GET all teams
-
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
-    const teams = await prisma.team.findMany();
+    const url = new URL(request.url);
+    const nameFilter = url.searchParams.get("name");
+
+    const where: { name?: { contains: string; mode: "insensitive" } } = {};
+    if (nameFilter) {
+      where.name = {
+        contains: nameFilter,
+        mode: "insensitive",
+      };
+    }
+
+    // Fetch and optimize data
+    const teams = await prisma.team.findMany({
+      where,
+      include: {
+        workDetails: {
+          include: {
+            Staff: {
+              include: {
+                personalDetails: {
+                  select: { fullName: true }, // Get only fullName
+                },
+              },
+            },
+          },
+        },
+      },
+    });
+
     if (teams.length === 0) {
       return NextResponse.json({ message: "No Teams found" }, { status: 404 });
     }
 
+    // Transform data for a cleaner response
+    const optimizedData = teams.map((team) => ({
+      id: team.id,
+      name: team.name,
+      staff: team.workDetails.flatMap((work) =>
+        work.Staff.map((staff) => ({
+          fullName: staff.personalDetails.fullName,
+        }))
+      ),
+    }));
+
     return NextResponse.json(
-      { data: teams, message: "Teams extrated successfully" },
+      { data: optimizedData, message: "Teams extracted successfully" },
       { status: 200 }
     );
   } catch (error) {
-    if (error instanceof Error) {
-      console.log("Error details:", {
-        message: error.message,
-        name: error.name,
-        stack: error.stack || "No stack trace",
-      });
-
-      return NextResponse.json(
-        { success: false, error: error.message },
-        { status: 400 }
-      );
-    }
-
-    console.log("Unknown error type:", error);
+    console.error("Error fetching teams:", error);
     return NextResponse.json(
       { success: false, error: "Failed to get teams" },
       { status: 500 }
