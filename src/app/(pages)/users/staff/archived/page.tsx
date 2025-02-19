@@ -20,69 +20,59 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import { AlertDialog } from "@/components/alert-dialog";
 import { StaffFilterDialog } from "@/components/staff-filter-dialog";
+import type { FilterParams } from "@/types/filterStaff";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
-import { useRouter } from "next/navigation";
 import { StaffData } from "@/types/staff/staff";
-import { FilterParams } from "@/types/filterStaff";
-import { ArchiveAll } from "@/components/archive-all-dialog";
 
-interface PaginationMetadata {
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export default function StaffListPage() {
-  const [showArchiveDialog, setShowArchiveDialog] = useState(false);
+export default function ArchivedStaffPage() {
+  const [showUnarchiveDialog, setShowUnarchiveDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterParams>({});
   const [allStaffData, setAllStaffData] = useState<StaffData[]>([]); // Store all staff data
   const [displayedStaffData, setDisplayedStaffData] = useState<StaffData[]>([]); // Filtered and paginated data
-  const [searchQuery, setSearchQuery] = useState("");
-  const [pagination, setPagination] = useState<PaginationMetadata>({
-    total: 0,
-    page: 1,
-    limit: 5,
+  const [pagination, setPagination] = useState({
+    currentPage: 1,
     totalPages: 1,
+    totalItems: 0,
+    itemsPerPage: 10,
+    hasNextPage: false,
+    hasPrevPage: false,
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
-  const router = useRouter();
+  const itemsPerPage = 10;
 
   const fetchStaff = async () => {
     try {
       setLoading(true);
-
-      const queryParams: Record<string, string> = {};
-
-      // Add filters to query params if they exist
-      if (filters.gender) queryParams.gender = filters.gender;
-      if (filters.role) queryParams.role = filters.role;
-      if (filters.employmentType)
-        queryParams.employmentType = filters.employmentType;
-      if (filters.team) queryParams.team = filters.team;
-
-      const params = new URLSearchParams(queryParams);
-      const response = await axios.get<{
-        status: string;
-        data: {
-          data: StaffData[];
-          meta: PaginationMetadata;
-        };
-      }>(`/api/user/staff/staff-details?${params}`);
-
-      setAllStaffData(response.data.data.data);
-    } catch (error) {
-      console.error("Error fetching staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch staff data. Please try again.",
-        variant: "destructive",
+      const params = new URLSearchParams({
+        archived: "true",
       });
+
+      // Add filters to params
+      Object.entries(filters).forEach(([key, value]) => {
+        if (value) {
+          params.append(key, value.toString());
+        }
+      });
+
+      const response = await axios.get(
+        `/api/user/staff/archived-staff?${params.toString()}`
+      );
+
+      if (response.data?.data) {
+        const staffData = Array.isArray(response.data.data)
+          ? response.data.data
+          : [];
+        setAllStaffData(staffData);
+      }
+    } catch (error) {
+      console.log("Error fetching staff:", error);
       setAllStaffData([]);
     } finally {
       setLoading(false);
@@ -102,19 +92,20 @@ export default function StaffListPage() {
     }
 
     // Calculate pagination
-    const total = filteredData.length;
-    const limit = 5;
-    const totalPages = Math.ceil(total / limit);
-    const startIndex = (currentPage - 1) * limit;
-    const endIndex = startIndex + limit;
+    const totalItems = filteredData.length;
+    const totalPages = Math.ceil(totalItems / itemsPerPage);
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
 
     // Update displayed data and pagination
     setDisplayedStaffData(filteredData.slice(startIndex, endIndex));
     setPagination({
-      total,
-      page: currentPage,
-      limit,
+      currentPage,
       totalPages,
+      totalItems,
+      itemsPerPage,
+      hasNextPage: currentPage < totalPages,
+      hasPrevPage: currentPage > 1,
     });
   }, [searchQuery, currentPage, allStaffData]);
 
@@ -128,26 +119,40 @@ export default function StaffListPage() {
     setCurrentPage(1);
   }, [searchQuery]);
 
-  const handlePageChange = (page: number) => {
-    setCurrentPage(page);
-  };
-
-  const handleArchiveAll = async () => {
+  const handleUnarchiveAll = async () => {
     try {
       await axios.post("/api/user/staff/alter-archive", {
-        operation: "archive",
+        operation: "unarchive",
       });
-      setShowArchiveDialog(false);
-      fetchStaff();
       toast({
         title: "Success",
-        description: "All staff archived successfully",
+        description: "All staff unarchived successfully",
       });
+      setShowUnarchiveDialog(false);
+      fetchStaff();
     } catch (error) {
-      console.error("Error archiving staff:", error);
+      console.error("Error unarchiving staff:", error);
       toast({
         title: "Error",
-        description: "Failed to archive staff. Please try again.",
+        description: "Failed to unarchive staff. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleUnarchiveStaff = async (data: StaffData) => {
+    try {
+      await axios.put(`/api/user/staff/manage-archive/${data.id}`, data);
+      toast({
+        title: "Success",
+        description: "Staff member unarchived successfully",
+      });
+      fetchStaff();
+    } catch (error) {
+      console.error("Error unarchiving staff member:", error);
+      toast({
+        title: "Error",
+        description: "Failed to unarchive staff member. Please try again.",
         variant: "destructive",
       });
     }
@@ -164,23 +169,14 @@ export default function StaffListPage() {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h1 className="text-2xl font-semibold">Staff</h1>
-            <p className="text-muted-foreground">List</p>
+            <p className="text-muted-foreground">Archived</p>
           </div>
-          <div className="flex gap-2">
-            <Button
-              variant="destructive"
-              className="bg-[#DC2626] hover:bg-[#DC2626]/90"
-              onClick={() => setShowArchiveDialog(true)}
-            >
-              Archive All
-            </Button>
-            <Button
-              onClick={() => router.push("/users/staff/new")}
-              className="bg-[#0D894F] hover:bg-[#0D894F]/90"
-            >
-              + Add Staff
-            </Button>
-          </div>
+          <Button
+            onClick={() => setShowUnarchiveDialog(true)}
+            className="bg-[#0D894F] hover:bg-[#0D894F]/90"
+          >
+            Unarchive All
+          </Button>
         </div>
         <div className="flex items-center justify-between gap-4">
           <div className="relative flex-1">
@@ -212,12 +208,12 @@ export default function StaffListPage() {
           <TableHeader className="bg-[#F1F7F6]">
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Gender</TableHead>
               <TableHead>Role</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>Mobile</TableHead>
               <TableHead>Address</TableHead>
               <TableHead>Employment Type</TableHead>
+              <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -230,19 +226,27 @@ export default function StaffListPage() {
             ) : displayedStaffData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
-                  No staff members found
+                  No archived staff members found
                 </TableCell>
               </TableRow>
             ) : (
               displayedStaffData.map((staff) => (
                 <TableRow key={staff.id}>
                   <TableCell>{staff.personalDetails.fullName}</TableCell>
-                  <TableCell>{staff.personalDetails.gender}</TableCell>
                   <TableCell>{staff.workDetails.role}</TableCell>
                   <TableCell>{staff.personalDetails.email}</TableCell>
                   <TableCell>{staff.personalDetails.phoneNumber}</TableCell>
                   <TableCell>{staff.personalDetails.address}</TableCell>
                   <TableCell>{staff.workDetails.employmentType}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant="secondary"
+                      className="bg-[#0D894F] text-white hover:bg-[#0D894F]/90"
+                      onClick={() => handleUnarchiveStaff(staff)}
+                    >
+                      Unarchive
+                    </Button>
+                  </TableCell>
                 </TableRow>
               ))
             )}
@@ -250,62 +254,70 @@ export default function StaffListPage() {
         </Table>
       </div>
 
-      <div className="mt-4 flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          Showing {(pagination.page - 1) * pagination.limit + 1}-
-          {Math.min(pagination.page * pagination.limit, pagination.total)} from{" "}
-          {pagination.total}
-        </p>
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious
-                href="#"
-                onClick={() =>
-                  handlePageChange(Math.max(1, pagination.page - 1))
-                }
-                className={
-                  pagination.page <= 1 ? "pointer-events-none opacity-50" : ""
-                }
-              />
-            </PaginationItem>
-            {[...Array(pagination.totalPages)].map((_, i) => (
-              <PaginationItem key={i + 1}>
-                <PaginationLink
+      {pagination && (
+        <div className="mt-4 flex items-center justify-between">
+          <p className="text-sm text-muted-foreground">
+            Showing {(pagination.currentPage - 1) * pagination.itemsPerPage + 1}
+            -
+            {Math.min(
+              pagination.currentPage * pagination.itemsPerPage,
+              pagination.totalItems
+            )}{" "}
+            from {pagination.totalItems}
+          </p>
+          <Pagination>
+            <PaginationContent>
+              <PaginationItem>
+                <PaginationPrevious
                   href="#"
-                  onClick={() => handlePageChange(i + 1)}
-                  isActive={pagination.page === i + 1}
-                >
-                  {i + 1}
-                </PaginationLink>
+                  onClick={() =>
+                    setCurrentPage((prev) => Math.max(1, prev - 1))
+                  }
+                  className={
+                    !pagination.hasPrevPage
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                />
               </PaginationItem>
-            ))}
-            <PaginationItem>
-              <PaginationNext
-                href="#"
-                onClick={() =>
-                  handlePageChange(
-                    Math.min(pagination.totalPages, pagination.page + 1)
-                  )
-                }
-                className={
-                  pagination.page >= pagination.totalPages
-                    ? "pointer-events-none opacity-50"
-                    : ""
-                }
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+              {[...Array(pagination.totalPages)].map((_, i) => (
+                <PaginationItem key={i + 1}>
+                  <PaginationLink
+                    href="#"
+                    onClick={() => setCurrentPage(i + 1)}
+                    isActive={pagination.currentPage === i + 1}
+                  >
+                    {i + 1}
+                  </PaginationLink>
+                </PaginationItem>
+              ))}
+              <PaginationItem>
+                <PaginationNext
+                  href="#"
+                  onClick={() =>
+                    setCurrentPage((prev) =>
+                      Math.min(pagination.totalPages, prev + 1)
+                    )
+                  }
+                  className={
+                    !pagination.hasNextPage
+                      ? "pointer-events-none opacity-50"
+                      : ""
+                  }
+                />
+              </PaginationItem>
+            </PaginationContent>
+          </Pagination>
+        </div>
+      )}
 
-      <ArchiveAll
-        open={showArchiveDialog}
-        onOpenChange={setShowArchiveDialog}
-        title="Archive Staffs?"
-        description="Are you sure you want to archive all staff members? Once archived, they will no longer appear in your list."
-        onConfirm={handleArchiveAll}
-        onCancel={() => setShowArchiveDialog(false)}
+      <AlertDialog
+        open={showUnarchiveDialog}
+        onOpenChange={setShowUnarchiveDialog}
+        title="Unarchive All Staff?"
+        description="Are you sure you want to unarchive all staff members? They will be moved back to the active staff list."
+        onConfirm={handleUnarchiveAll}
+        onCancel={() => setShowUnarchiveDialog(false)}
       />
 
       <StaffFilterDialog

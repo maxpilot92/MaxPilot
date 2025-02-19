@@ -16,9 +16,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { FilterParams } from "@/types/filterStaff";
+import type { FilterParams } from "@/types/filterStaff";
 
 interface StaffFilterDialogProps {
   open: boolean;
@@ -75,10 +74,14 @@ export function StaffFilterDialog({
                 <SelectValue placeholder="Select Role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="Developer">Developer</SelectItem>
-                <SelectItem value="Designer">Designer</SelectItem>
-                <SelectItem value="Manager">Manager</SelectItem>
+                <SelectItem value="Carer">Carer</SelectItem>
                 <SelectItem value="Admin">Admin</SelectItem>
+                <SelectItem value="Coordinator">Coordinator</SelectItem>
+                <SelectItem value="HR">HR</SelectItem>
+                <SelectItem value="OfficeSupport">Office Support</SelectItem>
+                <SelectItem value="Ops">Ops</SelectItem>
+                <SelectItem value="Kiosk">Kiosk</SelectItem>
+                <SelectItem value="Others">Others</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -99,6 +102,7 @@ export function StaffFilterDialog({
                 <SelectItem value="PartTime">Part Time</SelectItem>
                 <SelectItem value="Casual">Casual</SelectItem>
                 <SelectItem value="Contract">Contract</SelectItem>
+                <SelectItem value="Others">Others</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -119,28 +123,9 @@ export function StaffFilterDialog({
                 <SelectItem value="Design">Design</SelectItem>
                 <SelectItem value="Product">Product</SelectItem>
                 <SelectItem value="Marketing">Marketing</SelectItem>
+                <SelectItem value="Others">Others</SelectItem>
               </SelectContent>
             </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Gender</Label>
-            <RadioGroup
-              value={filters.gender}
-              onValueChange={(value: "Male" | "Female") =>
-                setFilters((prev) => ({ ...prev, gender: value }))
-              }
-              className="flex gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Female" id="female" />
-                <Label htmlFor="female">Female</Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="Male" id="male" />
-                <Label htmlFor="male">Male</Label>
-              </div>
-            </RadioGroup>
           </div>
         </div>
 

@@ -169,7 +169,7 @@ function MenuItem({ item }: { item: (typeof menuItems)[number] }) {
           <SidebarMenu>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href={`${item.url}/overview`}>List</Link>
+                <Link href={`/users/staff`}>List</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
@@ -179,7 +179,7 @@ function MenuItem({ item }: { item: (typeof menuItems)[number] }) {
             </SidebarMenuItem>
             <SidebarMenuItem>
               <SidebarMenuButton asChild>
-                <Link href={`${item.url}/settings`}>Archived</Link>
+                <Link href={`/users/staff/archived`}>Archived</Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>

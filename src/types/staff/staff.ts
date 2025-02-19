@@ -2,7 +2,7 @@
 type GenderStatus = "Male" | "Female";
 
 // Type for role
-type RoleStatus =
+export type RoleStatus =
   | "Carer"
   | "Admin"
   | "Coordinator"
@@ -13,7 +13,7 @@ type RoleStatus =
   | "Others";
 
 // Type for Employment status
-type EmploymentTypeStatus =
+export type EmploymentTypeStatus =
   | "FullTime"
   | "PartTime"
   | "Casual"
