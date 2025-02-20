@@ -112,7 +112,7 @@ export default function ArchivedStaffPage() {
   // Fetch initial data
   useEffect(() => {
     fetchStaff();
-  }, [filters, fetchStaff]);
+  }, [filters]);
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -318,6 +318,7 @@ export default function ArchivedStaffPage() {
         description="Are you sure you want to unarchive all staff members? They will be moved back to the active staff list."
         onConfirm={handleUnarchiveAll}
         onCancel={() => setShowUnarchiveDialog(false)}
+        name="Unarchive All"
       />
 
       <StaffFilterDialog

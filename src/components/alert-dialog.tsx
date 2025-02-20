@@ -18,6 +18,7 @@ interface AlertDialogProps {
   description: string;
   onConfirm: () => void;
   onCancel: () => void;
+  name?: string;
 }
 
 export function AlertDialog({
@@ -27,6 +28,7 @@ export function AlertDialog({
   description,
   onConfirm,
   onCancel,
+  name = "Archive",
 }: AlertDialogProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -54,7 +56,7 @@ export function AlertDialog({
               )}
               onClick={onConfirm}
             >
-              Archive
+              {name}
             </Button>
           </div>
         </div>

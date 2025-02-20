@@ -24,6 +24,7 @@ import { AlertDialog } from "@/components/alert-dialog";
 import { useDebounce } from "use-debounce";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
+import { useRouter } from "next/navigation";
 
 interface Staff {
   fullName: string;
@@ -51,6 +52,7 @@ export default function TeamsPage() {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const [debouncedSearchQuery] = useDebounce(searchQuery, 300);
+  const router = useRouter();
 
   const fetchTeams = async () => {
     try {
@@ -97,13 +99,13 @@ export default function TeamsPage() {
 
   useEffect(() => {
     fetchTeams();
-  }, [currentPage, debouncedSearchQuery, fetchTeams]); //This line was already correct.  No change needed.
+  }, [currentPage, debouncedSearchQuery]); //This line was already correct.  No change needed.
 
   const handleDeleteTeam = async () => {
     if (!selectedTeam) return;
 
     try {
-      await axios.delete(`/api/staff/teams/${selectedTeam.id}`);
+      await axios.delete(`/api/user/staff/team/${selectedTeam.id}`);
       toast({
         title: "Success",
         description: "Team deleted successfully",
@@ -130,7 +132,10 @@ export default function TeamsPage() {
             <h1 className="text-2xl font-semibold">Staff</h1>
             <p className="text-muted-foreground">Teams</p>
           </div>
-          <Button className="bg-[#0D894F] hover:bg-[#0D894F]/90">
+          <Button
+            onClick={() => router.push("/users/staff/team/new")}
+            className="bg-[#0D894F] hover:bg-[#0D894F]/90"
+          >
             + Add Team
           </Button>
         </div>
@@ -285,6 +290,7 @@ export default function TeamsPage() {
           setShowDeleteDialog(false);
           setSelectedTeam(null);
         }}
+        name="Delete"
       />
     </div>
   );

@@ -26,7 +26,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { StaffData } from "@/types/staff/staff";
 import { FilterParams } from "@/types/filterStaff";
-import { ArchiveAll } from "@/components/archive-all-dialog";
+import { AlertDialog } from "@/components/alert-dialog";
 
 interface PaginationMetadata {
   total: number;
@@ -121,7 +121,7 @@ export default function StaffListPage() {
   // Fetch initial data
   useEffect(() => {
     fetchStaff();
-  }, [filters, fetchStaff]);
+  }, [filters]);
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -145,11 +145,6 @@ export default function StaffListPage() {
       });
     } catch (error) {
       console.error("Error archiving staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to archive staff. Please try again.",
-        variant: "destructive",
-      });
     }
   };
 
@@ -299,13 +294,14 @@ export default function StaffListPage() {
         </Pagination>
       </div>
 
-      <ArchiveAll
+      <AlertDialog
         open={showArchiveDialog}
         onOpenChange={setShowArchiveDialog}
         title="Archive Staffs?"
         description="Are you sure you want to archive all staff members? Once archived, they will no longer appear in your list."
         onConfirm={handleArchiveAll}
         onCancel={() => setShowArchiveDialog(false)}
+        name="Archive All"
       />
 
       <StaffFilterDialog
