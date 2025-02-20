@@ -21,7 +21,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { AlertDialog } from "@/components/alert-dialog";
-import { StaffFilterDialog } from "@/components/staff-filter-dialog";
+import { StaffFilterDialog } from "@/components/staff/staff-filter-dialog";
 import type { FilterParams } from "@/types/filterStaff";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";

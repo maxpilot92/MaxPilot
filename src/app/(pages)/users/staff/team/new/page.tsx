@@ -22,8 +22,8 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import { SortableStaffCard } from "@/components/sortable-staff-card";
-import { StaffCard } from "@/components/staff-card";
+import { SortableStaffCard } from "@/components/staff/sortable-staff-card";
+import { StaffCard } from "@/components/staff/staff-card";
 import type { StaffData } from "@/types/staff/staff";
 import { useToast } from "@/hooks/use-toast";
 import axios from "axios";

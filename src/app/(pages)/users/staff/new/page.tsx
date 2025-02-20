@@ -1,4 +1,4 @@
-import { StaffForm } from "@/components/staff-form";
+import { StaffForm } from "@/components/staff/staff-form";
 import React from "react";
 
 export default function page() {

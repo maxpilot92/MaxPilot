@@ -20,7 +20,7 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { StaffFilterDialog } from "@/components/staff-filter-dialog";
+import { StaffFilterDialog } from "@/components/staff/staff-filter-dialog";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";

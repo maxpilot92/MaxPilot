@@ -36,7 +36,7 @@ import {
 } from "@/components/ui/table";
 import { Switch } from "@/components/ui/switch";
 import { EditNextOfKinDialog } from "./edit-next-of-kin-dialog";
-import { AlertDialog } from "./alert-dialog";
+import { AlertDialog } from "../alert-dialog";
 
 export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const [data, setData] = useState(initialData);

@@ -1,5 +1,5 @@
 "use client";
-import { StaffTabs } from "@/components/staff-tabs";
+import { StaffTabs } from "@/components/staff/staff-tabs";
 import { StaffData } from "@/types/staff/staff";
 import axios from "axios";
 import { useParams } from "next/navigation";
