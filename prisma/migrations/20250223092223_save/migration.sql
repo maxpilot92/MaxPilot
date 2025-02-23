@@ -10,16 +10,8 @@ CREATE TYPE "RoleStatus" AS ENUM ('Carer', 'Admin', 'Coordinator', 'HR', 'Office
 -- CreateEnum
 CREATE TYPE "EmploymentTypeStatus" AS ENUM ('FullTime', 'PartTime', 'Casual', 'Contractor', 'Others');
 
--- CreateTable
-CREATE TABLE "Compliance" (
-    "id" TEXT NOT NULL,
-    "staffId" TEXT NOT NULL,
-    "certification" TEXT NOT NULL,
-    "expiryDate" TIMESTAMP(3) NOT NULL,
-    "status" TEXT NOT NULL,
-
-    CONSTRAINT "Compliance_pkey" PRIMARY KEY ("id")
-);
+-- CreateEnum
+CREATE TYPE "MaritalStatus" AS ENUM ('Single', 'Married', 'Divorced', 'Widowed', 'Separated');
 
 -- CreateTable
 CREATE TABLE "NextOfKin" (
@@ -34,36 +26,17 @@ CREATE TABLE "NextOfKin" (
 );
 
 -- CreateTable
-CREATE TABLE "PayrollSettings" (
+CREATE TABLE "User" (
     "id" TEXT NOT NULL,
-    "staffId" TEXT NOT NULL,
-    "bankName" TEXT NOT NULL,
-    "accountNumber" TEXT NOT NULL,
-    "taxCode" TEXT NOT NULL,
-
-    CONSTRAINT "PayrollSettings_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Settings" (
-    "id" TEXT NOT NULL,
-    "staffId" TEXT NOT NULL,
-    "notificationsEnabled" BOOLEAN NOT NULL DEFAULT true,
-    "theme" TEXT NOT NULL DEFAULT 'light',
-
-    CONSTRAINT "Settings_pkey" PRIMARY KEY ("id")
-);
-
--- CreateTable
-CREATE TABLE "Staff" (
-    "id" TEXT NOT NULL,
+    "role" TEXT NOT NULL DEFAULT 'staff',
     "personalDetailsId" TEXT NOT NULL,
-    "workDetailsId" TEXT NOT NULL,
+    "workDetailsId" TEXT,
     "archived" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
+    "publicInformationId" TEXT,
 
-    CONSTRAINT "Staff_pkey" PRIMARY KEY ("id")
+    CONSTRAINT "User_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
@@ -82,6 +55,7 @@ CREATE TABLE "WorkDetails" (
     "hiredOn" TIMESTAMP(3) NOT NULL,
     "role" "RoleStatus" NOT NULL,
     "employmentType" "EmploymentTypeStatus" NOT NULL,
+    "teamId" TEXT,
 
     CONSTRAINT "WorkDetails_pkey" PRIMARY KEY ("id")
 );
@@ -97,21 +71,25 @@ CREATE TABLE "PersonalDetails" (
     "emergencyContact" TEXT NOT NULL,
     "language" TEXT,
     "nationality" TEXT,
+    "religion" TEXT,
     "gender" "GenderStatus",
+    "unit" TEXT,
+    "maritalStatus" "MaritalStatus",
 
     CONSTRAINT "PersonalDetails_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
-CREATE TABLE "_StaffTeams" (
-    "A" TEXT NOT NULL,
-    "B" TEXT NOT NULL,
+CREATE TABLE "PublicInformation" (
+    "id" TEXT NOT NULL,
+    "generalInfo" TEXT NOT NULL,
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+    "needToKnowInfo" TEXT NOT NULL,
+    "usefulInfo" TEXT NOT NULL,
 
-    CONSTRAINT "_StaffTeams_AB_pkey" PRIMARY KEY ("A","B")
+    CONSTRAINT "PublicInformation_pkey" PRIMARY KEY ("id")
 );
-
--- CreateIndex
-CREATE UNIQUE INDEX "Compliance_staffId_key" ON "Compliance"("staffId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "NextOfKin_staffId_key" ON "NextOfKin"("staffId");
@@ -120,10 +98,13 @@ CREATE UNIQUE INDEX "NextOfKin_staffId_key" ON "NextOfKin"("staffId");
 CREATE UNIQUE INDEX "NextOfKin_email_key" ON "NextOfKin"("email");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "PayrollSettings_staffId_key" ON "PayrollSettings"("staffId");
+CREATE UNIQUE INDEX "User_publicInformationId_key" ON "User"("publicInformationId");
 
 -- CreateIndex
-CREATE UNIQUE INDEX "Settings_staffId_key" ON "Settings"("staffId");
+CREATE UNIQUE INDEX "Team_name_key" ON "Team"("name");
+
+-- CreateIndex
+CREATE INDEX "WorkDetails_teamId_idx" ON "WorkDetails"("teamId");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "PersonalDetails_email_key" ON "PersonalDetails"("email");
@@ -131,17 +112,14 @@ CREATE UNIQUE INDEX "PersonalDetails_email_key" ON "PersonalDetails"("email");
 -- CreateIndex
 CREATE UNIQUE INDEX "PersonalDetails_phoneNumber_key" ON "PersonalDetails"("phoneNumber");
 
--- CreateIndex
-CREATE INDEX "_StaffTeams_B_index" ON "_StaffTeams"("B");
+-- AddForeignKey
+ALTER TABLE "User" ADD CONSTRAINT "User_personalDetailsId_fkey" FOREIGN KEY ("personalDetailsId") REFERENCES "PersonalDetails"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Staff" ADD CONSTRAINT "Staff_personalDetailsId_fkey" FOREIGN KEY ("personalDetailsId") REFERENCES "PersonalDetails"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_workDetailsId_fkey" FOREIGN KEY ("workDetailsId") REFERENCES "WorkDetails"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "Staff" ADD CONSTRAINT "Staff_workDetailsId_fkey" FOREIGN KEY ("workDetailsId") REFERENCES "WorkDetails"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+ALTER TABLE "User" ADD CONSTRAINT "User_publicInformationId_fkey" FOREIGN KEY ("publicInformationId") REFERENCES "PublicInformation"("id") ON DELETE SET NULL ON UPDATE CASCADE;
 
 -- AddForeignKey
-ALTER TABLE "_StaffTeams" ADD CONSTRAINT "_StaffTeams_A_fkey" FOREIGN KEY ("A") REFERENCES "Staff"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-
--- AddForeignKey
-ALTER TABLE "_StaffTeams" ADD CONSTRAINT "_StaffTeams_B_fkey" FOREIGN KEY ("B") REFERENCES "Team"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+ALTER TABLE "WorkDetails" ADD CONSTRAINT "WorkDetails_teamId_fkey" FOREIGN KEY ("teamId") REFERENCES "Team"("id") ON DELETE SET NULL ON UPDATE CASCADE;

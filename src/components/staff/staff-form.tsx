@@ -71,8 +71,31 @@ export function StaffForm() {
   }, [errors]);
 
   async function onSubmit(data: PersonalDetailsFormValues) {
+    const personalDetails = {
+      fullName: data.fullName,
+      email: data.email,
+      phoneNumber: data.phoneNumber,
+      address: data.address,
+      dob: data.dob,
+      emergencyContact: data.emergencyContact,
+      language: data.language,
+      nationality: data.nationality,
+      gender: data.gender,
+    };
+
+    const workDetails = {
+      worksAt: data.worksAt,
+      hiredOn: data.hiredOn,
+      role: data.role,
+      employmentType: data.employmentType,
+      ...((data.team && { teamId: data.team }) || {}),
+    };
     try {
-      const response = await axios.post("/api/user/staff/staff-details", data);
+      const response = await axios.post("/api/user/user-details", {
+        personalDetails: personalDetails,
+        workDetails: workDetails,
+      });
+      console.log(response);
       router.push(`/users/staff/${response.data.data.id}`);
     } catch (error) {
       console.error(error);
@@ -414,7 +437,7 @@ export function StaffForm() {
 
                           {teams &&
                             teams.map((team) => (
-                              <SelectItem key={team.id} value={team.name}>
+                              <SelectItem key={team.id} value={team.id}>
                                 {team.name}
                               </SelectItem>
                             ))}

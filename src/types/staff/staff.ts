@@ -1,3 +1,5 @@
+import { User } from "@prisma/client";
+
 // Type for gender
 type GenderStatus = "Male" | "Female";
 
@@ -19,6 +21,13 @@ export type EmploymentTypeStatus =
   | "Casual"
   | "Contractor"
   | "Others";
+
+export type MaritalStatus =
+  | "Single"
+  | "Married"
+  | "Divorced"
+  | "Widowed"
+  | "Separated";
 
 // Combined input interface to match incoming data
 export interface StaffInput {
@@ -48,6 +57,10 @@ export interface PersonalDetails {
   id: string;
   language?: string;
   nationality?: string;
+  unit?: string;
+  maritalStatus?: MaritalStatus;
+  religion?: string;
+  user: User;
   phoneNumber: string;
 }
 

@@ -59,23 +59,26 @@ export default function StaffListPage() {
 
       const queryParams: Record<string, string> = {};
 
+      // Set userRole to 'staff' first
+      filters.userRole = "staff";
+
       // Add filters to query params if they exist
       if (filters.gender) queryParams.gender = filters.gender;
       if (filters.role) queryParams.role = filters.role;
       if (filters.employmentType)
         queryParams.employmentType = filters.employmentType;
       if (filters.team) queryParams.team = filters.team;
+      if (filters.userRole) queryParams.userRole = filters.userRole; // Add userRole filter
 
       const params = new URLSearchParams(queryParams);
+
       const response = await axios.get<{
         status: string;
-        data: {
-          data: StaffData[];
-          meta: PaginationMetadata;
-        };
-      }>(`/api/user/staff/staff-details?${params}`);
+        data: StaffData[];
+        meta: PaginationMetadata;
+      }>(`/api/user/user-details?${params}`);
 
-      setAllStaffData(response.data.data.data);
+      setAllStaffData(response.data.data);
     } catch (error) {
       console.error("Error fetching staff:", error);
       toast({
@@ -100,6 +103,8 @@ export default function StaffListPage() {
         staff.personalDetails.fullName.toLowerCase().includes(query)
       );
     }
+
+    if (!filteredData) return;
 
     // Calculate pagination
     const total = filteredData.length;

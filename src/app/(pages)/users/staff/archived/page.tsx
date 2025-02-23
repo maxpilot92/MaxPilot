@@ -60,6 +60,7 @@ export default function ArchivedStaffPage() {
           params.append(key, value.toString());
         }
       });
+      console.log(params, "params");
 
       const response = await axios.get(
         `/api/user/staff/archived-staff?${params.toString()}`

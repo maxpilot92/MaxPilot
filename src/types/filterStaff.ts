@@ -55,4 +55,5 @@ export interface FilterParams {
   gender?: "Male" | "Female";
   page?: number;
   limit?: number;
+  userRole?: string;
 }

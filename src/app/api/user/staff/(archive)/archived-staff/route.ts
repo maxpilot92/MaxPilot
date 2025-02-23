@@ -20,10 +20,12 @@ export async function GET(request: Request): Promise<NextResponse> {
     ) as EmploymentType | null;
     const role = searchParams.get("role") as Role | null;
     const teamId = searchParams.get("teamId");
+    const userRole = searchParams.get("userRole")?.toLowerCase();
 
     // Build the where clause for one-to-one relation with proper team relation handling
     const whereClause: Prisma.UserWhereInput = {
       archived: true,
+      role: userRole as RoleStatus,
       workDetails: {
         is: {
           ...(employmentType && { employmentType }),

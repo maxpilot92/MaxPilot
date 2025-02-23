@@ -35,7 +35,7 @@ export function StaffFilterDialog({
   const [filters, setFilters] = useState<FilterParams>(currentFilters);
 
   const handleApply = () => {
-    onApplyFilters(filters);
+    onApplyFilters({ ...filters, userRole: "staff" });
     onOpenChange(false);
   };
 

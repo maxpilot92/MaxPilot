@@ -51,12 +51,45 @@ const menuItems = [
     icon: Users,
     url: "/staff",
     hasSubmenu: true,
+    subMenuItems: [
+      {
+        title: "List",
+        url: "/users/staff",
+      },
+      {
+        title: "Teams",
+        url: "users/staff/team",
+      },
+      {
+        title: "Archived",
+        url: "users/staff/archived",
+      },
+      {
+        title: "Documents",
+        url: "users/staff/documents",
+      },
+    ],
   },
   {
     title: "Clients",
     icon: Users2,
     url: "/clients",
     hasSubmenu: true,
+    subMenuItems: [
+      {
+        title: "List",
+        url: "/users/client",
+      },
+
+      {
+        title: "Archived",
+        url: "/users/client/archived",
+      },
+      {
+        title: "Documents",
+        url: "/users/client/documents",
+      },
+    ],
   },
   {
     title: "Timesheet",
@@ -168,24 +201,11 @@ function MenuItem({ item }: { item: (typeof menuItems)[number] }) {
         <CollapsibleContent className="pl-10 py-1">
           <SidebarMenu>
             <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href={`/users/staff`}>List</Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href={`/users/staff/team`}>Teams</Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href={`/users/staff/archived`}>Archived</Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link href={`${item.url}/settings`}>Documents</Link>
-              </SidebarMenuButton>
+              {item.subMenuItems?.map((subItem) => (
+                <SidebarMenuButton asChild key={subItem.title}>
+                  <Link href={subItem.url}>{subItem.title}</Link>
+                </SidebarMenuButton>
+              ))}
             </SidebarMenuItem>
           </SidebarMenu>
         </CollapsibleContent>

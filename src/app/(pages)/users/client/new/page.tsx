@@ -30,7 +30,7 @@ const clientSchema = z.object({
   email: z.string().email("Invalid email address"),
   phoneNumber: z.string().min(10, "Phone number must be at least 10 digits"),
   address: z.string().min(5, "Address must be at least 5 characters"),
-  unitNumber: z.string().min(1, "Unit/Apartment number is required"),
+  unit: z.string().min(1, "Unit/Apartment number is required"),
   dob: z.string().min(1, "Date of birth is required"),
   emergencyContact: z
     .string()
@@ -55,7 +55,7 @@ export default function AddClientPage() {
       email: "",
       phoneNumber: "",
       address: "",
-      unitNumber: "",
+      unit: "",
       dob: "",
       emergencyContact: "",
       language: "",
@@ -68,7 +68,9 @@ export default function AddClientPage() {
 
   async function onSubmit(data: ClientFormValues) {
     try {
-      const response = await axios.post("/api/clients", data);
+      const response = await axios.post("/api/user/user-details", {
+        personalDetails: data,
+      });
       toast({
         title: "Success",
         description: "Client added successfully",
@@ -180,7 +182,7 @@ export default function AddClientPage() {
 
                   <FormField
                     control={form.control}
-                    name="unitNumber"
+                    name="unit"
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>
@@ -301,10 +303,10 @@ export default function AddClientPage() {
                             </SelectTrigger>
                           </FormControl>
                           <SelectContent>
-                            <SelectItem value="single">Single</SelectItem>
-                            <SelectItem value="married">Married</SelectItem>
-                            <SelectItem value="divorced">Divorced</SelectItem>
-                            <SelectItem value="widowed">Widowed</SelectItem>
+                            <SelectItem value="Single">Single</SelectItem>
+                            <SelectItem value="Married">Married</SelectItem>
+                            <SelectItem value="Divorced">Divorced</SelectItem>
+                            <SelectItem value="Widowed">Widowed</SelectItem>
                           </SelectContent>
                         </Select>
                         <FormMessage />
