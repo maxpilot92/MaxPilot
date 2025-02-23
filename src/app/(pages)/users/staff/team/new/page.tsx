@@ -141,7 +141,6 @@ export default function TeamEditPage() {
         const availableStaffData = allStaff.filter(
           (staff: StaffData) => !teamStaffIdsSet.has(staff.id)
         );
-
         console.log("Team Members Data:", teamMembersData);
         console.log("Available Staff Data:", availableStaffData);
 

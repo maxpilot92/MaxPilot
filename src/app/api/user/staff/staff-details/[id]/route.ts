@@ -123,7 +123,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const staff = await prisma.staff.findUnique({
+    const staff = await prisma.user.findUnique({
       where: { id },
       include: {
         personalDetails: true,
@@ -176,7 +176,7 @@ export async function PUT(request: NextRequest) {
 
     // Update staff record with related details using transaction
     const updatedStaff = await prisma.$transaction(async (prisma) => {
-      const staff = await prisma.staff.findUnique({
+      const staff = await prisma.user.findUnique({
         where: { id },
         include: {
           personalDetails: true,
@@ -206,7 +206,7 @@ export async function PUT(request: NextRequest) {
 
       // Update work details
       await prisma.workDetails.update({
-        where: { id: staff.workDetailsId },
+        where: { id: staff.workDetailsId as string | undefined },
         data: {
           worksAt: data.worksAt,
           hiredOn: new Date(data.hiredOn),
@@ -219,7 +219,7 @@ export async function PUT(request: NextRequest) {
       });
 
       // Return updated staff with all relations
-      return await prisma.staff.findUnique({
+      return await prisma.user.findUnique({
         where: { id },
         include: {
           personalDetails: true,

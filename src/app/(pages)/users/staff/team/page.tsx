@@ -124,6 +124,10 @@ export default function TeamsPage() {
     }
   };
 
+  const handleEdit = (id: string) => {
+    router.push(`/users/staff/team/edit/${id}`);
+  };
+
   return (
     <div className="container py-6">
       <div className="mb-6">
@@ -201,7 +205,11 @@ export default function TeamsPage() {
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-2">
-                      <Button variant="ghost" size="icon">
+                      <Button
+                        onClick={() => handleEdit(team.id)}
+                        variant="ghost"
+                        size="icon"
+                      >
                         <PenSquare className="h-4 w-4 text-primary" />
                       </Button>
                       <Button

@@ -22,7 +22,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     const teamId = searchParams.get("teamId");
 
     // Build the where clause for one-to-one relation with proper team relation handling
-    const whereClause: Prisma.StaffWhereInput = {
+    const whereClause: Prisma.UserWhereInput = {
       archived: true,
       workDetails: {
         is: {
@@ -39,7 +39,7 @@ export async function GET(request: Request): Promise<NextResponse> {
       },
     };
 
-    const archivedStaff = await prisma.staff.findMany({
+    const archivedStaff = await prisma.user.findMany({
       where: whereClause,
       include: {
         personalDetails: {

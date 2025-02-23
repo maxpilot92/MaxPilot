@@ -74,20 +74,20 @@ export async function PUT(request: NextRequest) {
     validatePersonalDetails(data);
 
     // Find the staff member first
-    const staff = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
       include: {
         personalDetails: true,
       },
     });
 
-    if (!staff) {
+    if (!user) {
       throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Staff member not found");
     }
 
     // Update personal details
     const updatedPersonalDetails = await prisma.personalDetails.update({
-      where: { id: staff.personalDetailsId },
+      where: { id: user.personalDetailsId },
       data: {
         fullName: data.fullName,
         email: data.email,
@@ -122,7 +122,7 @@ export async function PUT(request: NextRequest) {
         return ApiError(
           new ApiErrors(
             HTTP_STATUS.CONFLICT,
-            "A staff member with this email or phone number already exists"
+            "A user with this email or phone number already exists"
           )
         );
       }
@@ -151,20 +151,20 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Find the staff member first
-    const staff = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
       include: {
         personalDetails: true,
       },
     });
 
-    if (!staff) {
-      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Staff member not found");
+    if (!user) {
+      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "User member not found");
     }
 
     // Delete personal details
     await prisma.personalDetails.delete({
-      where: { id: staff.personalDetailsId },
+      where: { id: user.personalDetailsId },
     });
 
     return ApiSuccess(null, "Personal details deleted successfully");

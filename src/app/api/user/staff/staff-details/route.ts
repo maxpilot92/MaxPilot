@@ -121,7 +121,6 @@ function validateWorkDetails(data: StaffInputFlat): void {
 export async function POST(request: Request) {
   try {
     const data: StaffInputFlat = await request.json();
-    console.log(data);
 
     // Validate both personal and work details
     validatePersonalDetails(data);
@@ -168,9 +167,8 @@ export async function POST(request: Request) {
           // },
         },
       });
-
       // Create staff record with relations
-      return await prisma.staff.create({
+      return await prisma.user.create({
         data: {
           personalDetailsId: personalDetails.id,
           workDetailsId: workDetails.id,
@@ -297,8 +295,8 @@ export async function GET(request: NextRequest) {
 
     // Get staff data with filters
     const [staff, total] = await Promise.all([
-      prisma.staff.findMany({
-        where: where as Prisma.StaffWhereInput,
+      prisma.user.findMany({
+        where: where as Prisma.UserWhereInput,
         include: {
           personalDetails: true,
           workDetails: true,
@@ -309,8 +307,8 @@ export async function GET(request: NextRequest) {
           createdAt: "desc",
         },
       }),
-      prisma.staff.count({
-        where: where as Prisma.StaffWhereInput,
+      prisma.user.count({
+        where: where as Prisma.UserWhereInput,
       }),
     ]);
 

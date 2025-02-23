@@ -31,7 +31,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Find the user first
-    const user = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
     });
 
@@ -40,7 +40,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Update archived status
-    const updatedUser = await prisma.staff.update({
+    const updatedUser = await prisma.user.update({
       where: { id },
       data: {
         archived: data.archived ? false : true,
@@ -90,7 +90,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const user = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
       select: {
         id: true,

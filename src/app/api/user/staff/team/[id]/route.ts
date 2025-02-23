@@ -87,6 +87,9 @@ export async function GET(
 
     const team = await prisma.team.findUnique({
       where: { id },
+      include: {
+        workDetails: true,
+      },
     });
 
     if (!team) {
