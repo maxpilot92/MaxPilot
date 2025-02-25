@@ -60,28 +60,28 @@ model NextOfKin {
     email    String @unique
 }
 
-// model PayrollSettings {
-//     id            String @id @default(uuid())
-//     staffId       String @unique
-//     bankName      String
-//     accountNumber String
-//     taxCode       String
-// }
+model PayrollSettings {
+    id            String @id @default(uuid())
+    staffId       String @unique
+    bankName      String
+    accountNumber String
+    taxCode       String
+}
 
-// model Compliance {
-//     id            String   @id @default(uuid())
-//     staffId       String   @unique
-//     certification String
-//     expiryDate    DateTime
-//     status        String
-// }
+model Compliance {
+    id            String   @id @default(uuid())
+    staffId       String   @unique
+    certification String
+    expiryDate    DateTime
+    status        String
+}
 
-// model Settings {
-//     id                   String  @id @default(uuid())
-//     staffId              String  @unique
-//     notificationsEnabled Boolean @default(true)
-//     theme                String  @default("light")
-// }
+model Settings {
+    id                   String  @id @default(uuid())
+    staffId              String  @unique
+    notificationsEnabled Boolean @default(true)
+    theme                String  @default("light")
+}
 
 // model Staff {
 //     id            String       @id @default(uuid())
@@ -96,9 +96,10 @@ model NextOfKin {
 //     workDetailsId String?
 // }
 
-model User {
+model Staff {
     id                  String             @id @default(uuid())
     role                String             @default("staff")
+    subRoles            String?
     personalDetailsId   String
     personalDetails     PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
     workDetailsId       String?
@@ -125,7 +126,7 @@ model WorkDetails {
     employmentType EmploymentTypeStatus
     teamId         String? // Optional team reference
     team           Team?                @relation("TeamWorkDetails", fields: [teamId], references: [id])
-    User           User[]
+    Staff          Staff[]
 
     @@index([teamId])
 }
@@ -142,7 +143,7 @@ model PersonalDetails {
     nationality      String?
     religion         String?
     gender           GenderStatus?
-    User             User[]
+    Staff            Staff[]
     unit             String?
     maritalStatus    MaritalStatus?
     clientStatus     String?
@@ -155,5 +156,5 @@ model PublicInformation {
     updatedAt      DateTime @updatedAt
     needToKnowInfo String
     usefulInfo     String
-    User           User[]
+    Staff          Staff[]
 }

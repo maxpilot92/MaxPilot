@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
+import redis from "@/lib/redis";
 
 // Type definitions
 enum RoleStatus {
@@ -134,7 +135,6 @@ export async function POST(request: NextRequest) {
   try {
     const data: CreateUserInput = await request.json();
     // Validate input data
-    console.log(data);
     validatePersonalDetails(data.personalDetails);
     if (data.workDetails) {
       validateWorkDetails(data.workDetails);
@@ -193,7 +193,7 @@ export async function POST(request: NextRequest) {
       //     });
       //   } else {
       // Create user without public information
-      newUser = await tx.user.create({
+      newUser = await tx.staff.create({
         data: {
           role: workDetails ? "staff" : "client",
           personalDetailsId: personalDetails.id,
@@ -231,12 +231,28 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role");
     const employmentType = searchParams.get("employmentType");
     const teamId = searchParams.get("teamId");
+    const cacheKey = `${userRole}`;
+
+    if (!page || !limit || !gender || !role || !employmentType || !teamId) {
+      try {
+        const cachedData = await redis.get(cacheKey);
+        if (cachedData) {
+          console.log(cacheKey + " data retrieved from cache");
+          return NextResponse.json(JSON.parse(cachedData));
+        }
+      } catch (cacheError) {
+        console.error("Error accessing cache:", cacheError);
+        // Continue with database query if cache access fails
+      }
+    }
+
+    console.log("redis caching failed");
 
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.UserWhereInput = {
+    const where: Prisma.StaffWhereInput = {
       archived: false,
       ...(gender && {
         personalDetails: {
@@ -265,7 +281,7 @@ export async function GET(request: NextRequest) {
 
     // Get users and total count
     const [users, total] = await Promise.all([
-      prisma.user.findMany({
+      prisma.staff.findMany({
         where,
         include: {
           personalDetails: true,
@@ -278,10 +294,11 @@ export async function GET(request: NextRequest) {
           createdAt: "desc",
         },
       }),
-      prisma.user.count({ where }),
+      prisma.staff.count({ where }),
     ]);
 
-    return NextResponse.json({
+    // Prepare response data
+    const responseData = {
       data: users,
       meta: {
         total,
@@ -289,7 +306,17 @@ export async function GET(request: NextRequest) {
         limit,
         totalPages: Math.ceil(total / limit),
       },
-    });
+    };
+
+    // Store in Redis cache with expiration time of 20 minutes (1200 seconds)
+    try {
+      await redis.set(cacheKey, JSON.stringify(responseData), "EX", 1200);
+    } catch (cacheError) {
+      console.error("Error storing data in cache:", cacheError);
+      // Continue with response even if caching fails
+    }
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error("Error fetching users:", error);
     return NextResponse.json(

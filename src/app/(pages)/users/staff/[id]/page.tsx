@@ -18,7 +18,7 @@ export default function Page() {
         setError(null);
 
         const response = await axios.get(
-          `/api/user/staff/staff-details/${params.id}`,
+          `/api/user/user-details/${params.id}`,
           {
             // Add headers if needed
             headers: {
@@ -26,9 +26,6 @@ export default function Page() {
             },
           }
         );
-
-        // Log the full response to debug
-        console.log("API Response:", response);
 
         if (response.data && response.data.data) {
           setData(response.data.data);

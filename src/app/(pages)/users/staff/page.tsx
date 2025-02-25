@@ -236,7 +236,12 @@ export default function StaffListPage() {
             ) : (
               displayedStaffData.map((staff) => (
                 <TableRow key={staff.id}>
-                  <TableCell>{staff.personalDetails.fullName}</TableCell>
+                  <TableCell
+                    className="cursor-pointer"
+                    onClick={() => router.push(`/users/staff/${staff.id}`)}
+                  >
+                    {staff.personalDetails.fullName}
+                  </TableCell>
                   <TableCell>{staff.personalDetails.gender}</TableCell>
                   <TableCell>{staff.workDetails.role}</TableCell>
                   <TableCell>{staff.personalDetails.email}</TableCell>

@@ -18,7 +18,7 @@ export async function POST(request: Request) {
 
     const result = await prisma.$transaction(async (tx) => {
       // Get all staff in current state (excluding admins for archive operation)
-      const staffToUpdate = await tx.user.findMany({
+      const staffToUpdate = await tx.staff.findMany({
         where: {
           archived: currentState,
           ...(operation === "archive" && {
@@ -44,7 +44,7 @@ export async function POST(request: Request) {
       }
 
       // Update all matching staff
-      const updateResult = await tx.user.updateMany({
+      const updateResult = await tx.staff.updateMany({
         where: {
           archived: currentState,
           ...(operation === "archive" && {

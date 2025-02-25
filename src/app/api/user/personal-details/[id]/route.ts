@@ -74,7 +74,7 @@ export async function PUT(request: NextRequest) {
     validatePersonalDetails(data);
 
     // Find the staff member first
-    const user = await prisma.user.findUnique({
+    const user = await prisma.staff.findUnique({
       where: { id },
       include: {
         personalDetails: true,
@@ -151,7 +151,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Find the staff member first
-    const user = await prisma.user.findUnique({
+    const user = await prisma.staff.findUnique({
       where: { id },
       include: {
         personalDetails: true,

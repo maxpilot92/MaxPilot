@@ -75,7 +75,8 @@ export default function AddClientPage() {
         title: "Success",
         description: "Client added successfully",
       });
-      router.push(`/clients/${response.data.id}`);
+      console.log("Client added:", response.data);
+      router.push(`/users/client/${response.data.data.id}`);
     } catch (error) {
       console.error("Error adding client:", error);
       toast({
