@@ -47,26 +47,36 @@ interface ClientData {
   status: "Active" | "Inactive";
 }
 
+interface PublicInformation {
+  generalInfo: string;
+  needToKnowInfo: { key: string; value: string };
+  usefulInfo: { key: string; value: string };
+}
+
 export default function ClientProfilePage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const { toast } = useToast();
   const params = useParams();
   const [clientData, setClientData] = useState<ClientData>();
+  const [publicInformation, setPublicInformation] =
+    useState<PublicInformation>();
+  const [isClicked, setIsClicked] = useState<boolean>(false);
 
+  // gets client data
   useEffect(() => {
     async function getClientData() {
       try {
         const response = await axios.get(
-          `/api/user/staff/staff-details/${params.id}`,
+          `/api/user/user-details/${params.id}`,
           {
             headers: {
               "Content-Type": "application/json",
             },
           }
         );
-
         if (response.data && response.data.data) {
           setClientData(response.data.data);
+          setPublicInformation(response.data.data.publicInformation);
         } else {
           throw new Error("No data received from API");
         }
@@ -91,7 +101,6 @@ export default function ClientProfilePage() {
     if (!clientData) return;
 
     try {
-      console.log("clientData", clientData.id);
       await axios.put(
         `/api/user/personal-details/${clientData.id}`,
         updatedData,
@@ -141,6 +150,79 @@ export default function ClientProfilePage() {
       toast({
         title: "Error",
         description: "Failed to archive client. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Add this to your useEffect or create a new one
+  useEffect(() => {
+    async function getPublicInformation() {
+      try {
+        const response = await axios.get(
+          `/api/user/client/public-information?userId=${clientData?.id}`
+        );
+        if (response.data && response.data.data) {
+          setPublicInformation(response.data.data);
+        }
+      } catch (error) {
+        console.error("Error fetching public information:", error);
+      }
+    }
+
+    getPublicInformation();
+  }, [clientData?.id]);
+
+  // Function to handle general information creation or update
+  const handlePublicInfoCreation = async () => {
+    try {
+      const userId = clientData?.id;
+      const url = `/api/user/client/public-information?userId=${userId}`;
+
+      // Check if we have existing public information
+      const shouldUpdate = publicInformation ? true : false;
+      if (shouldUpdate) {
+        console.log("Public information already exists");
+        await axios.put(url, {
+          generalInfo: publicInformation?.generalInfo,
+          needToKnowInfo: publicInformation?.needToKnowInfo || {
+            key: "",
+            value: "",
+          },
+          usefulInfo: publicInformation?.usefulInfo || { key: "", value: "" },
+        });
+
+        toast({
+          title: "Success",
+          description: "Public information updated successfully",
+        });
+        // handle put api call
+      } else {
+        // handle post api call
+        if (!publicInformation) {
+          throw new Error("Public information is required");
+        }
+
+        await axios.post(url, {
+          generalInfo: publicInformation?.generalInfo,
+          needToKnowInfo: publicInformation?.needToKnowInfo || {
+            key: "",
+            value: "",
+          },
+          usefulInfo: publicInformation?.usefulInfo || { key: "", value: "" },
+        });
+        toast({
+          title: "Success",
+          description: "Public information saved successfully",
+        });
+      }
+
+      setIsClicked(false);
+    } catch (error) {
+      console.error("Error saving general information:", error);
+      toast({
+        title: "Failed to save general information",
+        description: "Please try again.",
         variant: "destructive",
       });
     }
@@ -284,21 +366,64 @@ export default function ClientProfilePage() {
               <CardTitle>Public Information</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center justify-between">
                 <span className="font-medium">General Information</span>
-                <Button variant="ghost" size="sm" className="text-primary">
+                <Button
+                  onClick={() => setIsClicked(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary"
+                >
                   <Plus className="h-4 w-4" />
-                  Add
+                  {publicInformation ? "Edit" : "Add"}
                 </Button>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              {isClicked && (
+                <div>
+                  <div>
+                    <input
+                      type="text"
+                      placeholder="Enter addition General Information"
+                      value={publicInformation?.generalInfo}
+                      onChange={(e) =>
+                        setPublicInformation((prev) => {
+                          return {
+                            generalInfo: e.target.value,
+                            needToKnowInfo: prev?.needToKnowInfo ?? {
+                              key: "",
+                              value: "",
+                            },
+                            usefulInfo: prev?.usefulInfo ?? {
+                              key: "",
+                              value: "",
+                            },
+                          };
+                        })
+                      }
+                      className="border border-gray-300 rounded-md w-full p-2"
+                    />
+                  </div>
+                  <div className="flex justify-end gap-3 my-2">
+                    <Button onClick={handlePublicInfoCreation}>Save</Button>
+                    <Button onClick={() => setIsClicked(false)}>Cancel</Button>
+                  </div>
+                </div>
+              )}
+              {publicInformation?.generalInfo && (
+                <div>
+                  <span className="text-sm text-gray-600">
+                    {publicInformation.generalInfo}
+                  </span>
+                </div>
+              )}
+              <div className="flex items-center justify-between">
                 <span className="font-medium">Need to know information</span>
                 <Button variant="ghost" size="sm" className="text-primary">
                   <Plus className="h-4 w-4" />
                   Add
                 </Button>
               </div>
-              <div className="flex items-center justify-between p-4 rounded-lg border">
+              <div className="flex items-center justify-between">
                 <span className="font-medium">Useful information</span>
                 <Button variant="ghost" size="sm" className="text-primary">
                   <Plus className="h-4 w-4" />

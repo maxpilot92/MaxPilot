@@ -2,23 +2,9 @@ import { ApiError, ApiErrors } from "@/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
+import { PersonalDetails } from "@prisma/client";
 
-// Type for gender
-type GenderStatus = "Male" | "Female";
-
-interface PersonalDetailsInput {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  dob: string;
-  emergencyContact: string;
-  language?: string;
-  nationality?: string;
-  gender?: GenderStatus;
-}
-
-function validatePersonalDetails(data: PersonalDetailsInput): void {
+function validatePersonalDetails(data: PersonalDetails): void {
   const requiredFields = [
     "fullName",
     "email",
@@ -29,7 +15,7 @@ function validatePersonalDetails(data: PersonalDetailsInput): void {
   ];
 
   const missingFields = requiredFields.filter(
-    (field) => !data[field as keyof PersonalDetailsInput]
+    (field) => !data[field as keyof PersonalDetails]
   );
 
   if (missingFields.length > 0) {
@@ -59,7 +45,7 @@ function validatePersonalDetails(data: PersonalDetailsInput): void {
 // PUT update personal details
 export async function PUT(request: NextRequest) {
   try {
-    const data: PersonalDetailsInput = await request.json();
+    const data: PersonalDetails = await request.json();
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
     const id = splittedUrl.at(-1);
@@ -100,6 +86,13 @@ export async function PUT(request: NextRequest) {
         gender: data.gender,
       },
     });
+
+    if (!updatedPersonalDetails) {
+      throw new ApiErrors(
+        HTTP_STATUS.BAD_REQUEST,
+        "Error updating personal details"
+      );
+    }
 
     return ApiSuccess(
       updatedPersonalDetails,

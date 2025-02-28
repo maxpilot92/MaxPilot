@@ -4,133 +4,6 @@ import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import redis from "@/lib/redis";
 
-// Type for gender
-type GenderStatus = "Male" | "Female";
-
-// Type for marital status
-type MaritalStatus = "Single" | "Married" | "Divorced" | "Widowed";
-
-// Type for role
-type RoleStatus =
-  | "Carer"
-  | "Admin"
-  | "Coordinator"
-  | "HR"
-  | "OfficeSupport"
-  | "Ops"
-  | "Kiosk"
-  | "Others";
-
-// Type for Employment status
-type EmploymentTypeStatus =
-  | "FullTime"
-  | "PartTime"
-  | "Casual"
-  | "Contractor"
-  | "Others";
-
-// Common personal details interface
-interface PersonalDetailsInput {
-  fullName: string;
-  email: string;
-  phoneNumber: string;
-  address: string;
-  dob: string;
-  emergencyContact: string;
-  language?: string;
-  nationality?: string;
-  religion?: string;
-  gender?: GenderStatus;
-  unit?: string;
-  maritalStatus?: MaritalStatus;
-}
-
-// Staff input interface
-interface StaffInput extends PersonalDetailsInput {
-  worksAt: string;
-  hiredOn: string;
-  role: RoleStatus;
-  employmentType: EmploymentTypeStatus;
-  team: string;
-}
-
-// Client input interface
-interface ClientInput extends PersonalDetailsInput {
-  publicInformation?: {
-    generalInfo?: string;
-    needToKnowInfo?: string;
-    usefulInfo?: string;
-  };
-}
-
-function validatePersonalDetails(data: PersonalDetailsInput): void {
-  const requiredFields = [
-    "fullName",
-    "email",
-    "phoneNumber",
-    "address",
-    "dob",
-    "emergencyContact",
-  ];
-
-  const missingFields = requiredFields.filter(
-    (field) => !data[field as keyof PersonalDetailsInput]
-  );
-
-  if (missingFields.length > 0) {
-    throw new ApiErrors(
-      HTTP_STATUS.BAD_REQUEST,
-      "Required personal details missing",
-      { fields: missingFields }
-    );
-  }
-
-  // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(data.email)) {
-    throw new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Invalid email format");
-  }
-
-  // Validate date of birth
-  const dob = new Date(data.dob);
-  if (isNaN(dob.getTime())) {
-    throw new ApiErrors(
-      HTTP_STATUS.BAD_REQUEST,
-      "Invalid date of birth format"
-    );
-  }
-}
-
-function validateWorkDetails(data: StaffInput): void {
-  const requiredFields = [
-    "worksAt",
-    "hiredOn",
-    "role",
-    "employmentType",
-    "team",
-  ];
-
-  const missingFields = requiredFields.filter(
-    (field) => !data[field as keyof StaffInput]
-  );
-
-  if (missingFields.length > 0) {
-    throw new ApiErrors(
-      HTTP_STATUS.BAD_REQUEST,
-      "Required work details missing",
-      {
-        fields: missingFields,
-      }
-    );
-  }
-
-  // Validate hire date
-  const hiredOn = new Date(data.hiredOn);
-  if (isNaN(hiredOn.getTime())) {
-    throw new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Invalid hire date format");
-  }
-}
-
 // Helper function to determine if the record is a staff or client
 async function getRecordType(id: string) {
   // Try to get data from Redis cache first
@@ -161,7 +34,7 @@ async function getRecordType(id: string) {
       include: {
         personalDetails: true,
         workDetails: true,
-        PublicInformation: true,
+        publicInformation: true,
       },
     });
 
@@ -179,7 +52,7 @@ async function getRecordType(id: string) {
       },
       include: {
         personalDetails: true,
-        PublicInformation: true,
+        publicInformation: true,
       },
     });
 
@@ -202,7 +75,7 @@ async function getRecordType(id: string) {
       include: {
         personalDetails: true,
         workDetails: true,
-        PublicInformation: true,
+        publicInformation: true,
       },
     });
 
@@ -218,7 +91,7 @@ async function getRecordType(id: string) {
       },
       include: {
         personalDetails: true,
-        PublicInformation: true,
+        publicInformation: true,
       },
     });
 
@@ -281,219 +154,235 @@ export async function GET(request: NextRequest) {
 }
 
 // PUT update record (staff or client)
-export async function PUT(request: NextRequest) {
-  try {
-    const url = new URL(request.url);
-    const splittedUrl = url.toString().split("/");
-    const id = splittedUrl.at(-1);
+// export async function PUT(request: NextRequest) {
+//   try {
+//     const url = new URL(request.url);
+//     const splittedUrl = url.toString().split("/");
+//     const id = splittedUrl.at(-1);
 
-    if (!id) {
-      return ApiError(
-        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
-      );
-    }
+//     if (!id) {
+//       return ApiError(
+//         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
+//       );
+//     }
 
-    // First determine if we're updating a staff or client
-    const { type, record } = await getRecordType(id);
+//     // First determine if we're updating a staff or client
+//     const { type, record } = await getRecordType(id);
 
-    if (!record) {
-      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found");
-    }
+//     if (!record) {
+//       throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found");
+//     }
 
-    const data = await request.json();
+//     const data = await request.json();
 
-    // Validate personal details for both staff and client
-    validatePersonalDetails(data);
+//     // Validate personal details for both staff and client
+//     validatePersonalDetails(data);
 
-    // For staff, also validate work details
-    if (type === "staff" && record.role !== "client") {
-      validateWorkDetails(data as StaffInput);
-    }
+//     // For staff, also validate work details
+//     if (type === "staff" && record.role !== "client") {
+//       validateWorkDetails(data as StaffInput);
+//     }
 
-    // Update record with related details using transaction
-    const updatedRecord = await prisma.$transaction(async (prisma) => {
-      // Update personal details
-      await prisma.personalDetails.update({
-        where: { id: record.personalDetailsId },
-        data: {
-          fullName: data.fullName,
-          email: data.email,
-          phoneNumber: data.phoneNumber,
-          address: data.address,
-          dob: new Date(data.dob),
-          emergencyContact: data.emergencyContact,
-          language: data.language,
-          nationality: data.nationality,
-          gender: data.gender,
-          religion: data.religion,
-          unit: data.unit,
-          maritalStatus: data.maritalStatus,
-        },
-      });
+//     // Update record with related details using transaction
+//     const updatedRecord = await prisma.$transaction(async (prisma) => {
+//       // Update personal details
+//       await prisma.personalDetails.update({
+//         where: { id: record.personalDetailsId },
+//         data: {
+//           fullName: data.fullName,
+//           email: data.email,
+//           phoneNumber: data.phoneNumber,
+//           address: data.address,
+//           dob: new Date(data.dob),
+//           emergencyContact: data.emergencyContact,
+//           language: data.language,
+//           nationality: data.nationality,
+//           gender: data.gender,
+//           religion: data.religion,
+//           unit: data.unit,
+//           maritalStatus: data.maritalStatus,
+//         },
+//       });
 
-      // Update work details for staff
-      if (
-        type === "staff" &&
-        record.workDetailsId &&
-        record.role !== "client"
-      ) {
-        const staffData = data as StaffInput;
-        await prisma.workDetails.update({
-          where: { id: record.workDetailsId },
-          data: {
-            worksAt: staffData.worksAt,
-            hiredOn: new Date(staffData.hiredOn),
-            role: staffData.role,
-            employmentType: staffData.employmentType,
-            teamId: staffData.team,
-          },
-        });
-      }
+//       // Update work details for staff
+//       if (
+//         type === "staff" &&
+//         record.workDetailsId &&
+//         record.role !== "client"
+//       ) {
+//         const staffData = data as StaffInput;
+//         await prisma.workDetails.update({
+//           where: { id: record.workDetailsId },
+//           data: {
+//             worksAt: staffData.worksAt,
+//             hiredOn: new Date(staffData.hiredOn),
+//             role: staffData.role,
+//             employmentType: staffData.employmentType,
+//             teamId: staffData.team,
+//           },
+//         });
+//       }
 
-      // Update public information for client
-      if (record.role === "client") {
-        const clientData = data as ClientInput;
+//       // Update public information for client
+//       if (record.role === "client") {
+//         const clientData = data as ClientInput;
+//         // Prepare JSON data for needToKnowInfo and usefulInfo
+//         // Convert string to JSON object if it's a string, or use empty object as fallback
+//         const needToKnowJson = clientData.publicInformation?.needToKnowInfo
+//           ? typeof clientData.publicInformation.needToKnowInfo === 'string'
+//             ? JSON.parse(clientData.publicInformation.needToKnowInfo)
+//             : clientData.publicInformation.needToKnowInfo
+//           : {};
 
-        // Check if public information already exists
-        if (record.PublicInformation && record.PublicInformation.id) {
-          await prisma.publicInformation.update({
-            where: { id: record.PublicInformation.id },
-            data: {
-              generalInfo: clientData.publicInformation?.generalInfo || "",
-              needToKnowInfo:
-                clientData.publicInformation?.needToKnowInfo || "",
-              usefulInfo: clientData.publicInformation?.usefulInfo || "",
-            },
-          });
-        } else {
-          // Create public information if it doesn't exist
-          await prisma.publicInformation.create({
-            data: {
-              generalInfo: clientData.publicInformation?.generalInfo || "",
-              needToKnowInfo:
-                clientData.publicInformation?.needToKnowInfo || "",
-              usefulInfo: clientData.publicInformation?.usefulInfo || "",
-              Staff: {
-                connect: { id: record.id },
-              },
-            },
-          });
-        }
-      }
+//         const usefulInfoJson = clientData.publicInformation?.usefulInfo
+//           ? typeof clientData.publicInformation.usefulInfo === 'string'
+//             ? JSON.parse(clientData.publicInformation.usefulInfo)
+//             : clientData.publicInformation.usefulInfo
+//           : {};
 
-      // Return updated record with all relations
-      return await prisma.staff.findUnique({
-        where: { id },
-        include: {
-          personalDetails: true,
-          workDetails: record.role !== "client" ? true : undefined,
-          PublicInformation: record.role === "client" ? true : undefined,
-        },
-      });
-    });
+//         // Check if public information already exists
+//         if (record.publicInformationId) {
+//           await prisma.publicInformation.update({
+//             where: { id: record.publicInformationId },
+//             data: {
+//               generalInfo: clientData.publicInformation?.generalInfo || "",
+//               needToKnowInfo: needToKnowJson,
+//               usefulInfo: usefulInfoJson,
+//             },
+//           });
+//         } else {
+//           // Create public information if it doesn't exist
+//           const newPublicInfo = await prisma.publicInformation.create({
+//             data: {
+//               generalInfo: clientData.publicInformation?.generalInfo || "",
+//               needToKnowInfo: needToKnowJson,
+//               usefulInfo: usefulInfoJson,
+//             },
+//           });
+          
+//           // Update the Staff record to connect to the new PublicInformation
+//           await prisma.staff.update({
+//             where: { id: record.id },
+//             data: {
+//               publicInformationId: newPublicInfo.id
+//             },
+//           });
+//         }
+//       }
 
-    // Invalidate cache after update
-    await redis.del(`staff:${id}`);
-    await redis.del(`client:${id}`);
+//       // Return updated record with all relations
+//       return await prisma.staff.findUnique({
+//         where: { id },
+//         include: {
+//           personalDetails: true,
+//           workDetails: record.role !== "client" ? true : undefined,
+//           PublicInformation: record.role === "client" ? true : undefined,
+//         },
+//       });
+//     });
 
-    // Update cache with new data
-    if (type === "staff") {
-      await redis.set(`staff:${id}`, JSON.stringify(updatedRecord), "EX", 1200);
-    } else {
-      await redis.set(
-        `client:${id}`,
-        JSON.stringify(updatedRecord),
-        "EX",
-        1200
-      );
-    }
+//     // Invalidate cache after update
+//     await redis.del(`staff:${id}`);
+//     await redis.del(`client:${id}`);
 
-    return ApiSuccess(
-      updatedRecord,
-      `${
-        type === "staff" && record.role !== "client" ? "Staff" : "Client"
-      } details updated successfully`
-    );
-  } catch (error: unknown) {
-    console.error("Error in PUT details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+//     // Update cache with new data
+//     if (type === "staff") {
+//       await redis.set(`staff:${id}`, JSON.stringify(updatedRecord), "EX", 1200);
+//     } else {
+//       await redis.set(
+//         `client:${id}`,
+//         JSON.stringify(updatedRecord),
+//         "EX",
+//         1200
+//       );
+//     }
 
-    if (error instanceof ApiErrors) {
-      return ApiError(error);
-    }
+//     return ApiSuccess(
+//       updatedRecord,
+//       `${
+//         type === "staff" && record.role !== "client" ? "Staff" : "Client"
+//       } details updated successfully`
+//     );
+//   } catch (error: unknown) {
+//     console.error("Error in PUT details:", {
+//       name: error instanceof Error ? error.name : "Unknown",
+//       message: error instanceof Error ? error.message : "Unknown error",
+//       stack: error instanceof Error ? error.stack : undefined,
+//     });
 
-    if (error && typeof error === "object" && "code" in error) {
-      const prismaError = error as { code: string };
-      if (prismaError.code === "P2002") {
-        return ApiError(
-          new ApiErrors(
-            HTTP_STATUS.CONFLICT,
-            "A record with this email or phone number already exists"
-          )
-        );
-      }
-      return ApiError(
-        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Database error occurred")
-      );
-    }
+//     if (error instanceof ApiErrors) {
+//       return ApiError(error);
+//     }
 
-    return ApiError(
-      new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error updating details")
-    );
-  }
-}
+//     if (error && typeof error === "object" && "code" in error) {
+//       const prismaError = error as { code: string };
+//       if (prismaError.code === "P2002") {
+//         return ApiError(
+//           new ApiErrors(
+//             HTTP_STATUS.CONFLICT,
+//             "A record with this email or phone number already exists"
+//           )
+//         );
+//       }
+//       return ApiError(
+//         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Database error occurred")
+//       );
+//     }
+
+//     return ApiError(
+//       new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Error updating details")
+//     );
+//   }
+// }
 
 // DELETE a record (staff or client)
-export async function DELETE(request: NextRequest) {
-  try {
-    const url = new URL(request.url);
-    const splittedUrl = url.toString().split("/");
-    const id = splittedUrl.at(-1);
+// export async function DELETE(request: NextRequest) {
+//   try {
+//     const url = new URL(request.url);
+//     const splittedUrl = url.toString().split("/");
+//     const id = splittedUrl.at(-1);
 
-    if (!id) {
-      return ApiError(
-        new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
-      );
-    }
+//     if (!id) {
+//       return ApiError(
+//         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
+//       );
+//     }
 
-    const { type, record } = await getRecordType(id);
+//     const { type, record } = await getRecordType(id);
 
-    if (!record) {
-      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found");
-    }
+//     if (!record) {
+//       throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found");
+//     }
 
-    // Instead of deleting, mark the record as archived
-    await prisma.staff.update({
-      where: { id },
-      data: { archived: true },
-    });
+//     // Instead of deleting, mark the record as archived
+//     await prisma.staff.update({
+//       where: { id },
+//       data: { archived: true },
+//     });
 
-    // Invalidate cache after archiving
-    await redis.del(`staff:${id}`);
-    await redis.del(`client:${id}`);
+//     // Invalidate cache after archiving
+//     await redis.del(`staff:${id}`);
+//     await redis.del(`client:${id}`);
 
-    return ApiSuccess(
-      null,
-      `${
-        type === "staff" && record.role !== "client" ? "Staff" : "Client"
-      } archived successfully`
-    );
-  } catch (error: unknown) {
-    console.error("Error in DELETE operation:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+//     return ApiSuccess(
+//       null,
+//       `${
+//         type === "staff" && record.role !== "client" ? "Staff" : "Client"
+//       } archived successfully`
+//     );
+//   } catch (error: unknown) {
+//     console.error("Error in DELETE operation:", {
+//       name: error instanceof Error ? error.name : "Unknown",
+//       message: error instanceof Error ? error.message : "Unknown error",
+//       stack: error instanceof Error ? error.stack : undefined,
+//     });
 
-    if (error instanceof ApiErrors) {
-      return ApiError(error);
-    }
+//     if (error instanceof ApiErrors) {
+//       return ApiError(error);
+//     }
 
-    return ApiError(
-      new ApiErrors(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Error archiving record")
-    );
-  }
-}
+//     return ApiError(
+//       new ApiErrors(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Error archiving record")
+//     );
+//   }
+// }

@@ -97,18 +97,17 @@ model Settings {
 // }
 
 model Staff {
-    id                  String             @id @default(uuid())
-    role                String             @default("staff")
-    subRoles            String?
-    personalDetailsId   String
-    personalDetails     PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
-    workDetailsId       String?
-    workDetails         WorkDetails?       @relation(fields: [workDetailsId], references: [id])
-    archived            Boolean            @default(false)
-    createdAt           DateTime           @default(now())
-    updatedAt           DateTime           @updatedAt
-    publicInformationId String?            @unique
-    PublicInformation   PublicInformation? @relation(fields: [publicInformationId], references: [id])
+    id                String             @id @default(uuid())
+    role              String             @default("staff")
+    subRoles          String?
+    personalDetailsId String
+    personalDetails   PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
+    workDetailsId     String?
+    workDetails       WorkDetails?       @relation(fields: [workDetailsId], references: [id])
+    archived          Boolean            @default(false)
+    createdAt         DateTime           @default(now())
+    updatedAt         DateTime           @updatedAt
+    publicInformation PublicInformation?
 }
 
 model Team {
@@ -154,7 +153,8 @@ model PublicInformation {
     generalInfo    String
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
-    needToKnowInfo String
-    usefulInfo     String
-    Staff          Staff[]
+    needToKnowInfo Json?
+    usefulInfo     Json?
+    staffId        String   @unique
+    Staff          Staff    @relation(fields: [staffId], references: [id])
 }

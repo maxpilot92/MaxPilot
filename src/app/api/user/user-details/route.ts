@@ -286,7 +286,7 @@ export async function GET(request: NextRequest) {
         include: {
           personalDetails: true,
           workDetails: true,
-          PublicInformation: true,
+          publicInformation: true,
         },
         skip,
         take: limit,
