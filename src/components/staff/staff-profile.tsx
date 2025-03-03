@@ -49,15 +49,11 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
     updatedData: Partial<PersonalDetails>
   ) => {
     try {
-      await axios.put(
-        `/api/user/staff/personal-details/${data.id}`,
-        updatedData,
-        {
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }
-      );
+      await axios.put(`/api/user/personal-details/${data.id}`, updatedData, {
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
 
       setData((prevData) => ({
         ...prevData,

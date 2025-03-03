@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import axios from "axios";
 import { useParams } from "next/navigation";
 import { EditClientDetailsDialog } from "@/components/client/edit-client-details-dialog";
+import { AddNewHeadingDialog } from "@/components/client/add-new-heading-dialog";
 
 interface ClientData {
   id: string;
@@ -49,18 +50,20 @@ interface ClientData {
 
 interface PublicInformation {
   generalInfo: string;
-  needToKnowInfo: { key: string; value: string };
-  usefulInfo: { key: string; value: string };
+  needToKnowInfo: { heading: string; description: string };
+  usefulInfo: { heading: string; description: string };
 }
 
 export default function ClientProfilePage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
-  const { toast } = useToast();
-  const params = useParams();
   const [clientData, setClientData] = useState<ClientData>();
+  const [open, setOpen] = useState<boolean>(false);
+  const [shouldUpdate, setShouldUpdate] = useState<boolean>(false);
   const [publicInformation, setPublicInformation] =
     useState<PublicInformation>();
   const [isClicked, setIsClicked] = useState<boolean>(false);
+  const { toast } = useToast();
+  const params = useParams();
 
   // gets client data
   useEffect(() => {
@@ -162,6 +165,7 @@ export default function ClientProfilePage() {
         const response = await axios.get(
           `/api/user/client/public-information?userId=${clientData?.id}`
         );
+        console.log(response);
         if (response.data && response.data.data) {
           setPublicInformation(response.data.data);
         }
@@ -171,6 +175,8 @@ export default function ClientProfilePage() {
     }
 
     getPublicInformation();
+    console.log(publicInformation, "pi");
+    setShouldUpdate(publicInformation ? true : false);
   }, [clientData?.id]);
 
   // Function to handle general information creation or update
@@ -178,18 +184,15 @@ export default function ClientProfilePage() {
     try {
       const userId = clientData?.id;
       const url = `/api/user/client/public-information?userId=${userId}`;
-
+      console.log(shouldUpdate, "su");
       // Check if we have existing public information
-      const shouldUpdate = publicInformation ? true : false;
+
       if (shouldUpdate) {
         console.log("Public information already exists");
         await axios.put(url, {
           generalInfo: publicInformation?.generalInfo,
-          needToKnowInfo: publicInformation?.needToKnowInfo || {
-            key: "",
-            value: "",
-          },
-          usefulInfo: publicInformation?.usefulInfo || { key: "", value: "" },
+          needToKnowInfo: publicInformation?.needToKnowInfo,
+          usefulInfo: publicInformation?.usefulInfo,
         });
 
         toast({
@@ -225,6 +228,19 @@ export default function ClientProfilePage() {
         description: "Please try again.",
         variant: "destructive",
       });
+    }
+  };
+  const refreshPublicInformation = async () => {
+    try {
+      const response = await axios.get(
+        `/api/user/client/public-information?userId=${clientData?.id}`
+      );
+      if (response.data && response.data.data) {
+        setPublicInformation(response.data.data);
+        setShouldUpdate(true);
+      }
+    } catch (error) {
+      console.error("Error refreshing public information:", error);
     }
   };
 
@@ -375,7 +391,7 @@ export default function ClientProfilePage() {
                   className="text-primary"
                 >
                   <Plus className="h-4 w-4" />
-                  {publicInformation ? "Edit" : "Add"}
+                  {publicInformation?.generalInfo ? "Edit" : "Add"}
                 </Button>
               </div>
               {isClicked && (
@@ -390,12 +406,12 @@ export default function ClientProfilePage() {
                           return {
                             generalInfo: e.target.value,
                             needToKnowInfo: prev?.needToKnowInfo ?? {
-                              key: "",
-                              value: "",
+                              heading: "",
+                              description: "",
                             },
                             usefulInfo: prev?.usefulInfo ?? {
-                              key: "",
-                              value: "",
+                              heading: "",
+                              description: "",
                             },
                           };
                         })
@@ -418,18 +434,57 @@ export default function ClientProfilePage() {
               )}
               <div className="flex items-center justify-between">
                 <span className="font-medium">Need to know information</span>
-                <Button variant="ghost" size="sm" className="text-primary">
+                <Button
+                  onClick={() => setOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary"
+                >
                   <Plus className="h-4 w-4" />
-                  Add
+                  {publicInformation?.needToKnowInfo ? "Edit" : "Add"}
                 </Button>
+                {/* <AddHeadingDialog open={open} onOpenChange={setOpen} onAdd={} /> */}
+                <AddNewHeadingDialog
+                  title="needToKnowInfo"
+                  open={open}
+                  onOpenChange={setOpen}
+                  userId={clientData.id}
+                  shouldUpdate={shouldUpdate}
+                  onSuccess={refreshPublicInformation}
+                />
               </div>
+              {publicInformation?.needToKnowInfo && (
+                <div className="flex gap-5 text-gray-600">
+                  <p>{publicInformation.needToKnowInfo.heading}</p>
+                  <p>{publicInformation.needToKnowInfo.description}</p>
+                </div>
+              )}
               <div className="flex items-center justify-between">
                 <span className="font-medium">Useful information</span>
-                <Button variant="ghost" size="sm" className="text-primary">
+                <Button
+                  onClick={() => setOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary"
+                >
                   <Plus className="h-4 w-4" />
-                  Add
+                  {publicInformation?.usefulInfo ? "Edit" : "Add"}
                 </Button>
+                <AddNewHeadingDialog
+                  title="usefulInfo"
+                  open={open}
+                  onOpenChange={setOpen}
+                  userId={clientData.id}
+                  shouldUpdate={shouldUpdate}
+                  onSuccess={refreshPublicInformation}
+                />
               </div>
+              {publicInformation?.usefulInfo && (
+                <div className="flex gap-5 text-gray-600">
+                  <p>{publicInformation.usefulInfo.heading}</p>
+                  <p>{publicInformation.usefulInfo.description}</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 

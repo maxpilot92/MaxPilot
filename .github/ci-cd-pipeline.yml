@@ -1,0 +1,64 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main # Trigger deployment on pushing to the master branch
+  pull_request:
+    branches:
+      - main # Trigger deployment on pull requests to the master branch
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up Node.js environment
+      - name: Set up Node.js
+        uses: actions/setup-node@v2
+        with:
+          node-version: "16"
+
+      # Step 3: Install dependencies
+      - name: Install dependencies
+        run: |
+          npm install
+
+      # Step 4: Run tests (optional)
+      # - name: Run tests
+      #   run: |
+      #     npm run test
+
+      # Step 5: Build the application
+      - name: Build Next.js app
+        run: |
+          npm run build
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      # Step 2: Set up SSH to Lightsail (make sure to add SSH key in GitHub secrets)
+      - name: Set up SSH
+        uses: webfactory/ssh-agent@v0.5.3
+        with:
+          ssh-private-key: ${{ secrets.LIGHTSAIL_SSH_PRIVATE_KEY }}
+
+      # Step 3: Deploy to Lightsail (modify this depending on your deployment process)
+      - name: Deploy to Lightsail
+        run: |
+          ssh -o StrictHostKeyChecking=no ubuntu@<your-lightsail-ip> <<EOF
+            cd /app/MaxPilotCRM
+            git pull origin main
+            npm install --production
+            npm run build
+            pm2 restart MaxPilotCRM  # Or your preferred process manager
+          EOF

@@ -150,11 +150,22 @@ model PersonalDetails {
 
 model PublicInformation {
     id             String   @id @default(uuid())
-    generalInfo    String
+    generalInfo    String?
     createdAt      DateTime @default(now())
     updatedAt      DateTime @updatedAt
     needToKnowInfo Json?
     usefulInfo     Json?
     staffId        String   @unique
     Staff          Staff    @relation(fields: [staffId], references: [id])
+}
+
+model Heading {
+    id                  String   @id @default(uuid())
+    needToKnowInfo      String?
+    usefulInfo          String?
+    needToKnowMandatory Boolean?
+    usefulInfoMandatory Boolean?
+    createdAt           DateTime @default(now())
+    updatedAt           DateTime @updatedAt
+    adminId             String
 }

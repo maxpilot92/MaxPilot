@@ -2,6 +2,18 @@ import prisma from "@/lib/prisma";
 import redis from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 
+interface PublicInformation {
+  generalInfo: string;
+  needToKnowInfo: {
+    heading: string;
+    description: string;
+  };
+  usefulInfo: {
+    heading: string;
+    description: string;
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
     const data = await request.json();
@@ -13,7 +25,7 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-
+    console.log(data);
     if (!data.generalInfo && !data.needToKnowInfo && !data.usefulInfo) {
       return NextResponse.json(
         { error: "Public information is required" },
@@ -25,28 +37,25 @@ export async function POST(request: NextRequest) {
       where: {
         id: userId,
       },
-    })
+    });
 
     if (!existingUser) {
       return NextResponse.json(
         { error: "User does not exist" },
         { status: 400 }
       );
-      
     }
-
     const publicInformation = await prisma.publicInformation.create({
       data: {
         ...data,
-        needToKnowInfo: data.needToKnowInfo || { key: "", value: "" },
-        usefulInfo: data.usefulInfo || { key: "", value: "" },
+        needToKnowInfo: data.needToKnowInfo,
+        usefulInfo: data.usefulInfo,
         Staff: {
           connect: {
             id: userId,
-            role,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     if (!publicInformation) {
@@ -79,31 +88,75 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const data = await request.json();
-    const role = "client"
+    const role = "client";
     const userId = request.nextUrl.searchParams.get("userId");
-    console.log(data, "data");
 
+    // Handle case where userId is null
     if (!userId) {
       return NextResponse.json(
-        { error: "User id is required" },
+        { error: "User ID is required" },
         { status: 400 }
       );
     }
 
-    if (!data.generalInfo && !data.needToKnowInfo && !data.usefulInfo) {
+    // Get existing data first
+    const existingInfo = await prisma.publicInformation.findUnique({
+      where: { staffId: userId },
+    });
+
+    if (!existingInfo) {
       return NextResponse.json(
-        { error: "Add something to update" },
-        { status: 400 }
+        { error: "Public information not found" },
+        { status: 404 }
       );
+    }
+
+    // Prepare update data with proper merging
+    const updateData = {} as PublicInformation;
+
+    if (data.generalInfo !== undefined) {
+      updateData.generalInfo = data.generalInfo;
+    }
+
+    if (data.needToKnowInfo !== undefined) {
+      // If we already have needToKnowInfo, extend it
+      if (existingInfo.needToKnowInfo) {
+        // Make sure we're dealing with an object that can be spread
+        const existingNeedToKnow =
+          typeof existingInfo.needToKnowInfo === "object"
+            ? existingInfo.needToKnowInfo
+            : {};
+
+        updateData.needToKnowInfo = {
+          ...existingNeedToKnow,
+          ...data.needToKnowInfo,
+        };
+      } else {
+        updateData.needToKnowInfo = data.needToKnowInfo;
+      }
+    }
+
+    if (data.usefulInfo !== undefined) {
+      // Same for usefulInfo
+      if (existingInfo.usefulInfo) {
+        // Make sure we're dealing with an object that can be spread
+        const existingUsefulInfo =
+          typeof existingInfo.usefulInfo === "object"
+            ? existingInfo.usefulInfo
+            : {};
+
+        updateData.usefulInfo = {
+          ...existingUsefulInfo,
+          ...data.usefulInfo,
+        };
+      } else {
+        updateData.usefulInfo = data.usefulInfo;
+      }
     }
 
     const publicInformation = await prisma.publicInformation.update({
       where: { staffId: userId },
-      data: {
-        ...data,
-        needToKnowInfo: data.needToKnowInfo || { key: "", value: "" },
-        usefulInfo: data.usefulInfo || { key: "", value: "" },
-      },
+      data: updateData,
     });
 
     if (!publicInformation) {
@@ -112,7 +165,6 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
-
     await redis.del(`${role}: ${userId}`);
 
     return NextResponse.json(
@@ -130,7 +182,6 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
-
 // Add a GET method to fetch existing public information
 export async function GET(request: NextRequest) {
   try {
@@ -160,14 +211,19 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    // Store in Redis cache for future requests
-    if (publicInformation) {
-      await redis.set(`${role}: ${userId}`, JSON.stringify(publicInformation));
+    if (!publicInformation) {
+      return NextResponse.json(
+        { message: "No public information found" },
+        { status: 404 }
+      );
     }
+
+    // Store in Redis cache for future requests
+    await redis.set(`${role}: ${userId}`, JSON.stringify(publicInformation));
 
     return NextResponse.json({
       message: "Public information retrieved successfully",
-      data: publicInformation || null,
+      data: publicInformation,
     });
   } catch (error) {
     console.error("Error in GET public information:", error);
