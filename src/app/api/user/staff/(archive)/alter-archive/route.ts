@@ -6,11 +6,14 @@ export const dynamic = "force-dynamic";
 // Add type for the operation parameter
 type ArchiveOperation = "archive" | "unarchive";
 
+interface BodyData {
+  operation: ArchiveOperation;
+  role: string;
+}
+
 export async function POST(request: Request) {
   try {
-    const { operation } = (await request.json()) as {
-      operation: ArchiveOperation;
-    };
+    const { operation, role } = (await request.json()) as BodyData;
 
     // Determine the current and target states based on operation
     const currentState = operation === "archive" ? false : true;
@@ -20,6 +23,7 @@ export async function POST(request: Request) {
       // Get all staff in current state (excluding admins for archive operation)
       const staffToUpdate = await tx.staff.findMany({
         where: {
+          role: role,
           archived: currentState,
           ...(operation === "archive" && {
             workDetails: {

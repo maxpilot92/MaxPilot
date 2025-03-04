@@ -143,7 +143,7 @@ export default function ClientProfilePage() {
     if (!clientData) return;
 
     try {
-      await fetch(`/api/clients/${clientData.id}/archive`, { method: "POST" });
+      await axios(`/api/user/staff/manage-archive/${clientData.id}`);
       toast({
         title: "Success",
         description: "Client archived successfully",

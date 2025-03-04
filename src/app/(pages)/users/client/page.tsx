@@ -20,13 +20,38 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { StaffFilterDialog } from "@/components/staff/staff-filter-dialog";
+import {
+  ClientFilterDialog,
+  FilterParams,
+} from "@/components/client/client-filter-dialog";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
-import { StaffData } from "@/types/staff/staff";
-import { FilterParams } from "@/types/filterStaff";
 import { AlertDialog } from "@/components/alert-dialog";
+
+// Define proper types that match your API response
+interface PersonalDetails {
+  fullName: string;
+  email: string;
+  phoneNumber: string;
+  address: string;
+  gender: string | null;
+  clientStatus: string | null;
+  unit: string | null;
+}
+
+interface ClientData {
+  id: string;
+  role: string;
+  subRoles: string | null;
+  personalDetailsId: string;
+  workDetailsId: string | null;
+  archived: boolean;
+  createdAt: Date;
+  updatedAt: Date;
+  // Use join/include fields that come from your API
+  personalDetails: PersonalDetails;
+}
 
 interface PaginationMetadata {
   total: number;
@@ -35,13 +60,15 @@ interface PaginationMetadata {
   totalPages: number;
 }
 
-export default function StaffListPage() {
+export default function ClientListPage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState<FilterParams>({});
-  const [allStaffData, setAllStaffData] = useState<StaffData[]>([]); // Store all staff data
-  const [displayedStaffData, setDisplayedStaffData] = useState<StaffData[]>([]); // Filtered and paginated data
+  const [allClientData, setAllClientData] = useState<ClientData[]>([]); // Store all client data
+  const [displayedClientData, setDisplayedClientData] = useState<ClientData[]>(
+    []
+  ); // Filtered and paginated data
   const [searchQuery, setSearchQuery] = useState("");
   const [pagination, setPagination] = useState<PaginationMetadata>({
     total: 0,
@@ -53,40 +80,40 @@ export default function StaffListPage() {
   const { toast } = useToast();
   const router = useRouter();
 
-  const fetchStaff = async () => {
+  const fetchClients = async () => {
     try {
       setLoading(true);
 
       const queryParams: Record<string, string> = {};
 
-      // Set userRole to 'staff' first
-      filters.userRole = "staff";
+      // Set userRole to 'client'
+      filters.userRole = "client";
 
       // Add filters to query params if they exist
       if (filters.gender) queryParams.gender = filters.gender;
-      if (filters.role) queryParams.role = filters.role;
-      if (filters.employmentType)
-        queryParams.employmentType = filters.employmentType;
-      if (filters.team) queryParams.team = filters.team;
+      if (filters.maritalStatus)
+        queryParams.maritalStatus = filters.maritalStatus;
+      if (filters.clientStatus) queryParams.clientStatus = filters.clientStatus;
+      if (filters.unit) queryParams.unit = filters.unit;
       if (filters.userRole) queryParams.userRole = filters.userRole; // Add userRole filter
 
       const params = new URLSearchParams(queryParams);
 
       const response = await axios.get<{
         status: string;
-        data: StaffData[];
+        data: ClientData[];
         meta: PaginationMetadata;
       }>(`/api/user/user-details?${params}`);
 
-      setAllStaffData(response.data.data);
+      setAllClientData(response.data.data);
     } catch (error) {
-      console.error("Error fetching staff:", error);
+      console.error("Error fetching clients:", error);
       toast({
         title: "Error",
-        description: "Failed to fetch staff data. Please try again.",
+        description: "Failed to fetch client data. Please try again.",
         variant: "destructive",
       });
-      setAllStaffData([]);
+      setAllClientData([]);
     } finally {
       setLoading(false);
     }
@@ -94,13 +121,13 @@ export default function StaffListPage() {
 
   // Filter and paginate data
   useEffect(() => {
-    let filteredData = allStaffData;
+    let filteredData = allClientData;
 
     // Apply search filter
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim();
-      filteredData = filteredData.filter((staff) =>
-        staff.personalDetails.fullName.toLowerCase().includes(query)
+      filteredData = filteredData.filter((client) =>
+        client.personalDetails.fullName.toLowerCase().includes(query)
       );
     }
 
@@ -114,18 +141,18 @@ export default function StaffListPage() {
     const endIndex = startIndex + limit;
 
     // Update displayed data and pagination
-    setDisplayedStaffData(filteredData.slice(startIndex, endIndex));
+    setDisplayedClientData(filteredData.slice(startIndex, endIndex));
     setPagination({
       total,
       page: currentPage,
       limit,
       totalPages,
     });
-  }, [searchQuery, currentPage, allStaffData]);
+  }, [searchQuery, currentPage, allClientData]);
 
   // Fetch initial data
   useEffect(() => {
-    fetchStaff();
+    fetchClients();
   }, [filters]);
 
   // Reset to first page when search query changes
@@ -141,16 +168,16 @@ export default function StaffListPage() {
     try {
       await axios.post("/api/user/staff/alter-archive", {
         operation: "archive",
-        role: "staff",
+        role: "client",
       });
       setShowArchiveDialog(false);
-      fetchStaff();
+      fetchClients();
       toast({
         title: "Success",
-        description: "All staff archived successfully",
+        description: "All clients archived successfully",
       });
     } catch (error) {
-      console.error("Error archiving staff:", error);
+      console.error("Error archiving clients:", error);
     }
   };
 
@@ -164,7 +191,7 @@ export default function StaffListPage() {
       <div className="mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
-            <h1 className="text-2xl font-semibold">Staff</h1>
+            <h1 className="text-2xl font-semibold">Clients</h1>
             <p className="text-muted-foreground">List</p>
           </div>
           <div className="flex gap-2">
@@ -176,10 +203,10 @@ export default function StaffListPage() {
               Archive All
             </Button>
             <Button
-              onClick={() => router.push("/users/staff/new")}
+              onClick={() => router.push("/users/client/new")}
               className="bg-[#0D894F] hover:bg-[#0D894F]/90"
             >
-              + Add Staff
+              + Add Client
             </Button>
           </div>
         </div>
@@ -214,11 +241,11 @@ export default function StaffListPage() {
             <TableRow>
               <TableHead>Name</TableHead>
               <TableHead>Gender</TableHead>
-              <TableHead>Role</TableHead>
+              <TableHead>Status</TableHead>
               <TableHead>E-mail</TableHead>
               <TableHead>Mobile</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead>Employment Type</TableHead>
+              <TableHead>Unit</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -228,27 +255,27 @@ export default function StaffListPage() {
                   Loading...
                 </TableCell>
               </TableRow>
-            ) : displayedStaffData.length === 0 ? (
+            ) : displayedClientData.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={7} className="text-center py-8">
-                  No staff members found
+                  No clients found
                 </TableCell>
               </TableRow>
             ) : (
-              displayedStaffData.map((staff) => (
-                <TableRow key={staff.id}>
+              displayedClientData.map((client) => (
+                <TableRow key={client.id}>
                   <TableCell
                     className="cursor-pointer"
-                    onClick={() => router.push(`/users/staff/${staff.id}`)}
+                    onClick={() => router.push(`/users/client/${client.id}`)}
                   >
-                    {staff.personalDetails.fullName}
+                    {client.personalDetails.fullName}
                   </TableCell>
-                  <TableCell>{staff.personalDetails.gender}</TableCell>
-                  <TableCell>{staff.workDetails.role}</TableCell>
-                  <TableCell>{staff.personalDetails.email}</TableCell>
-                  <TableCell>{staff.personalDetails.phoneNumber}</TableCell>
-                  <TableCell>{staff.personalDetails.address}</TableCell>
-                  <TableCell>{staff.workDetails.employmentType}</TableCell>
+                  <TableCell>{client.personalDetails.gender}</TableCell>
+                  <TableCell>{client.personalDetails.clientStatus}</TableCell>
+                  <TableCell>{client.personalDetails.email}</TableCell>
+                  <TableCell>{client.personalDetails.phoneNumber}</TableCell>
+                  <TableCell>{client.personalDetails.address}</TableCell>
+                  <TableCell>{client.personalDetails.unit}</TableCell>
                 </TableRow>
               ))
             )}
@@ -267,9 +294,10 @@ export default function StaffListPage() {
             <PaginationItem>
               <PaginationPrevious
                 href="#"
-                onClick={() =>
-                  handlePageChange(Math.max(1, pagination.page - 1))
-                }
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(Math.max(1, pagination.page - 1));
+                }}
                 className={
                   pagination.page <= 1 ? "pointer-events-none opacity-50" : ""
                 }
@@ -279,7 +307,10 @@ export default function StaffListPage() {
               <PaginationItem key={i + 1}>
                 <PaginationLink
                   href="#"
-                  onClick={() => handlePageChange(i + 1)}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handlePageChange(i + 1);
+                  }}
                   isActive={pagination.page === i + 1}
                 >
                   {i + 1}
@@ -289,11 +320,12 @@ export default function StaffListPage() {
             <PaginationItem>
               <PaginationNext
                 href="#"
-                onClick={() =>
+                onClick={(e) => {
+                  e.preventDefault();
                   handlePageChange(
                     Math.min(pagination.totalPages, pagination.page + 1)
-                  )
-                }
+                  );
+                }}
                 className={
                   pagination.page >= pagination.totalPages
                     ? "pointer-events-none opacity-50"
@@ -308,14 +340,14 @@ export default function StaffListPage() {
       <AlertDialog
         open={showArchiveDialog}
         onOpenChange={setShowArchiveDialog}
-        title="Archive Staffs?"
-        description="Are you sure you want to archive all staff members? Once archived, they will no longer appear in your list."
+        title="Archive Clients?"
+        description="Are you sure you want to archive all clients? Once archived, they will no longer appear in your list."
         onConfirm={handleArchiveAll}
         onCancel={() => setShowArchiveDialog(false)}
         name="Archive All"
       />
 
-      <StaffFilterDialog
+      <ClientFilterDialog
         open={showFilterDialog}
         onOpenChange={setShowFilterDialog}
         onApplyFilters={handleApplyFilters}

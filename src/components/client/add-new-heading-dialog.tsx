@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import { X } from "lucide-react";
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -44,31 +43,38 @@ export function AddNewHeadingDialog({
   const [message, setMessage] = useState<string>("");
   const [needToKnowInfos, setNeedToKnowInfos] = useState<Heading[]>([]);
   const [usefulInfos, setUsefulInfos] = useState<Heading[]>([]);
+  const [isNTKDialog, setIsNTKDialog] = useState<boolean>(false);
   const { toast } = useToast();
-  const isNTKDialog = title === "needToKnowInfo";
+  const fetchHeadings = async () => {
+    try {
+      if (isNTKDialog) {
+        const response = await axios.get(
+          "/api/user/client/heading?headingType=needToKnowInfo"
+        );
+        setNeedToKnowInfos(response.data.data || []);
+      } else {
+        const response = await axios.get(
+          "/api/user/client/heading?headingType=usefullInfo"
+        );
+        setUsefulInfos(response.data.data || []);
+      }
+    } catch (error) {
+      console.error("Error fetching headings:", error);
+    }
+  };
+  // Set the dialog type based on the title prop
+  useEffect(() => {
+    setIsNTKDialog(title === "needToKnowInfo");
+    fetchHeadings();
+    // Reset heading when dialog type changes
+  }, [title]);
 
   // Fetch headings based on dialog type
   useEffect(() => {
-    const fetchHeadings = async () => {
-      try {
-        if (isNTKDialog) {
-          const response = await axios.get(
-            "/api/user/client/heading?headingType=needToKnowInfo"
-          );
-          setNeedToKnowInfos(response.data.data || []);
-        } else {
-          const response = await axios.get(
-            "/api/user/client/heading?headingType=usefullInfo"
-          );
-          setUsefulInfos(response.data.data || []);
-        }
-      } catch (error) {
-        console.error("Error fetching headings:", error);
-      }
-    };
-
-    fetchHeadings();
-  }, [isNTKDialog]);
+    if (open) {
+      fetchHeadings();
+    }
+  }, [isNTKDialog, open]);
 
   const handleAddHeadingInfo = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -77,7 +83,6 @@ export function AddNewHeadingDialog({
       const payload = isNTKDialog
         ? { needToKnowInfo: { heading, description: message } }
         : { usefulInfo: { heading, description: message } };
-      console.log(payload);
       // Check if we have existing public information
       if (shouldUpdate) {
         console.log("Public information already exists");
@@ -90,7 +95,6 @@ export function AddNewHeadingDialog({
         });
       } else {
         // handle post api call
-
         await axios.post(url, payload);
         onOpenChange(false); // Close dialog
         onSuccess(); // Call the callback to refresh parent
@@ -109,7 +113,7 @@ export function AddNewHeadingDialog({
     }
   };
 
-  // Determine the options to show based on the title
+  // Determine the options to show based on the dialog type
   const headingOptions = isNTKDialog ? needToKnowInfos : usefulInfos;
 
   return (
@@ -120,14 +124,6 @@ export function AddNewHeadingDialog({
           <h2 className="text-lg font-semibold">
             Add New {isNTKDialog ? "Need to Know" : "Useful Info"} Heading
           </h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 rounded-full"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
 
         <form onSubmit={handleAddHeadingInfo} className="space-y-6 pt-4">
