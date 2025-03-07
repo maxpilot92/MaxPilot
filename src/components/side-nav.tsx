@@ -44,7 +44,7 @@ const menuItems = [
   {
     title: "Schedule",
     icon: Calendar,
-    url: "/schedule",
+    url: "http://localhost:3000/users/areas",
   },
   {
     title: "Staff",
@@ -54,19 +54,19 @@ const menuItems = [
     subMenuItems: [
       {
         title: "List",
-        url: "/users/staff",
+        url: "http://localhost:3000/users/staff",
       },
       {
         title: "Teams",
-        url: "users/staff/team",
+        url: "http://localhost:3000/users/staff/team",
       },
       {
         title: "Archived",
-        url: "users/staff/archived",
+        url: "http://localhost:3000/users/staff/archived",
       },
       {
         title: "Documents",
-        url: "users/staff/documents",
+        url: "http://localhost:3000/users/staff/document",
       },
     ],
   },
@@ -78,16 +78,16 @@ const menuItems = [
     subMenuItems: [
       {
         title: "List",
-        url: "/users/client",
+        url: "http://localhost:3000/users/client",
       },
 
       {
         title: "Archived",
-        url: "/users/client/archived",
+        url: "http://localhost:3000/users/client/archived",
       },
       {
         title: "Documents",
-        url: "/users/client/documents",
+        url: "http://localhost:3000/users/client/document",
       },
     ],
   },

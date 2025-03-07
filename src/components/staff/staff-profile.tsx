@@ -37,6 +37,7 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { EditNextOfKinDialog } from "./edit-next-of-kin-dialog";
 import { AlertDialog } from "../alert-dialog";
+import { useRouter } from "next/navigation";
 
 export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const [data, setData] = useState(initialData);
@@ -44,6 +45,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
   const [payrollData, setPayrollData] = useState<PayrollSettings>();
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleSavePersonalDetails = async (
     updatedData: Partial<PersonalDetails>
@@ -541,7 +543,11 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
               + Add Shift
             </Button>
             <div className="space-y-4">
-              <Button variant="ghost" className="w-full justify-start">
+              <Button
+                onClick={() => router.push("/users/staff/document")}
+                variant="ghost"
+                className="w-full justify-start"
+              >
                 <FileText className="mr-2 h-4 w-4" />
                 Documents
               </Button>

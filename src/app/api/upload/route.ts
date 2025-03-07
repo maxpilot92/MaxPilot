@@ -50,11 +50,14 @@ export async function POST(request: NextRequest) {
     await s3.send(new PutObjectCommand(uploadParams));
 
     const directUrl = `https://${bucketName}.s3.${region}.amazonaws.com/${fileName}`;
-
-    return NextResponse.json({
-      fileName,
-      directUrl,
-    });
+    const responseData = {
+      fileName: file.name,
+      url: directUrl,
+    };
+    return NextResponse.json(
+      { responseData, message: "File uploaded successfully" },
+      { status: 200 }
+    );
   } catch (error) {
     console.error("S3 upload error:", error);
     return NextResponse.json(

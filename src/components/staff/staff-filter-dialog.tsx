@@ -8,7 +8,6 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { X } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -51,14 +50,6 @@ export function StaffFilterDialog({
         <DialogHeader>
           <div className="flex items-center justify-between">
             <DialogTitle>Filter</DialogTitle>
-            <Button
-              variant="ghost"
-              size="icon"
-              className="h-6 w-6 p-0"
-              onClick={() => onOpenChange(false)}
-            >
-              <X className="h-4 w-4" />
-            </Button>
           </div>
         </DialogHeader>
         <div className="space-y-6 py-4">

@@ -233,18 +233,18 @@ export async function GET(request: NextRequest) {
     const teamId = searchParams.get("teamId");
     const cacheKey = `${userRole}`;
 
-    if (!page || !limit || !gender || !role || !employmentType || !teamId) {
-      try {
-        const cachedData = await redis.get(cacheKey);
-        if (cachedData) {
-          console.log(cacheKey + " data retrieved from cache");
-          return NextResponse.json(JSON.parse(cachedData));
-        }
-      } catch (cacheError) {
-        console.error("Error accessing cache:", cacheError);
-        // Continue with database query if cache access fails
-      }
-    }
+    // if (!page || !limit || !gender || !role || !employmentType || !teamId) {
+    //   try {
+    //     const cachedData = await redis.get(cacheKey);
+    //     if (cachedData) {
+    //       console.log(cacheKey + " data retrieved from cache");
+    //       return NextResponse.json(JSON.parse(cachedData));
+    //     }
+    //   } catch (cacheError) {
+    //     console.error("Error accessing cache:", cacheError);
+    //     // Continue with database query if cache access fails
+    //   }
+    // }
 
     console.log("redis caching failed");
 

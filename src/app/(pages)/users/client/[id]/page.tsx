@@ -28,6 +28,8 @@ import axios from "axios";
 import { useParams } from "next/navigation";
 import { EditClientDetailsDialog } from "@/components/client/edit-client-details-dialog";
 import { AddNewHeadingDialog } from "@/components/client/add-new-heading-dialog";
+import { AddDocumentDialog } from "@/components/client/document-upload-dialog";
+import { Documents } from "@prisma/client";
 
 interface ClientData {
   id: string;
@@ -54,6 +56,10 @@ interface PublicInformation {
   usefulInfo: { heading: string; description: string };
 }
 
+interface GetDocument {
+  data: Documents;
+}
+
 export default function ClientProfilePage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [clientData, setClientData] = useState<ClientData>();
@@ -62,6 +68,7 @@ export default function ClientProfilePage() {
   const [publicInformation, setPublicInformation] =
     useState<PublicInformation>();
   const [isClicked, setIsClicked] = useState<boolean>(false);
+  const [documents, setDocuments] = useState<Documents[]>();
   const { toast } = useToast();
   const params = useParams();
 
@@ -170,12 +177,11 @@ export default function ClientProfilePage() {
           setPublicInformation(response.data.data);
         }
       } catch (error) {
-        console.error("Error fetching public information:", error);
+        console.log("Error fetching public information:", error);
       }
     }
 
     getPublicInformation();
-    console.log(publicInformation, "pi");
     setShouldUpdate(publicInformation ? true : false);
   }, [clientData?.id]);
 
@@ -230,6 +236,7 @@ export default function ClientProfilePage() {
       });
     }
   };
+
   const refreshPublicInformation = async () => {
     try {
       const response = await axios.get(
@@ -243,6 +250,34 @@ export default function ClientProfilePage() {
       console.error("Error refreshing public information:", error);
     }
   };
+
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        const response = await axios.get<GetDocument>(
+          "/api/user/client/document?role=client"
+        );
+        console.log(response);
+
+        if (response.data && Array.isArray(response.data.data)) {
+          const updatedDocuments = response.data.data.map((document) => {
+            const expiresDate = new Date(document.expires);
+            const archiveStatus =
+              expiresDate > new Date() ? "Not Expired" : "Expired";
+            return { ...document, status: archiveStatus };
+          });
+
+          setDocuments(updatedDocuments);
+        } else {
+          console.error("Invalid response data:", response.data);
+        }
+      } catch (error) {
+        console.error("Error fetching documents:", error);
+      }
+    };
+
+    fetchDocuments();
+  }, []);
 
   if (!clientData) {
     return <div>Loading...</div>;
@@ -531,7 +566,12 @@ export default function ClientProfilePage() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Documents</CardTitle>
-              <Button variant="ghost" size="sm" className="text-primary">
+              <Button
+                onClick={() => setOpen(true)}
+                variant="ghost"
+                size="sm"
+                className="text-primary"
+              >
                 <PenSquare className="h-4 w-4 mr-1" />
                 Edit
               </Button>
@@ -547,16 +587,24 @@ export default function ClientProfilePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell
-                      colSpan={4}
-                      className="text-center py-4 text-muted-foreground"
-                    >
-                      No Data Available
-                    </TableCell>
-                  </TableRow>
+                  {(!documents || documents.length !== 0) &&
+                    documents?.map((document) => (
+                      <TableRow key={document.id}>
+                        <TableCell>{document.category || ""}</TableCell>
+                        <TableCell>
+                          {document.expires ? document.expires.toString() : ""}
+                        </TableCell>
+                        <TableCell>
+                          {document.updatedAt
+                            ? document.updatedAt.toString()
+                            : ""}
+                        </TableCell>
+                        <TableCell>{document.status || ""}</TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
+              <AddDocumentDialog onOpenChange={setOpen} open={open} />
             </CardContent>
           </Card>
 

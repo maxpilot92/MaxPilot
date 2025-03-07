@@ -12,7 +12,10 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import ScheduleGrid from "./schedule-grid";
+import { AddShiftSheet, ShiftData } from "./add-shift-sheet";
 import { type Shift, ShiftStatus, type StaffMember } from "@/types/schedule";
+import axios from "axios";
+import { useToast } from "@/hooks/use-toast";
 
 const STAFF_MEMBERS: StaffMember[] = [
   {
@@ -103,6 +106,8 @@ export default function SchedulePage() {
   const [staff] = useState<StaffMember[]>(STAFF_MEMBERS);
   const [dateRange] = useState("23 Dec - 29 Dec 2024");
   const [view] = useState("Weekly");
+  const [addShiftOpen, setAddShiftOpen] = useState(false);
+  const { toast } = useToast();
 
   const handleShiftMove = (
     shiftId: string,
@@ -122,6 +127,22 @@ export default function SchedulePage() {
           : shift
       )
     );
+  };
+
+  const handleAddShift = async (data: ShiftData) => {
+    console.log("New shift data:", data);
+    // Handle adding the new shift here
+    try {
+      const response = await axios.post("/api/schedule", data);
+
+      console.log(response);
+      toast({
+        title: "Success",
+        description: "Shift added successfully",
+      });
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   return (
@@ -176,6 +197,7 @@ export default function SchedulePage() {
           <Button
             variant="default"
             className="bg-gray-900 text-white hover:bg-gray-800"
+            onClick={() => setAddShiftOpen(true)}
           >
             <Plus className="mr-2 h-4 w-4" />
             Add Shift
@@ -209,6 +231,11 @@ export default function SchedulePage() {
         shifts={shifts}
         staff={staff}
         onShiftMove={handleShiftMove}
+      />
+      <AddShiftSheet
+        open={addShiftOpen}
+        onOpenChange={setAddShiftOpen}
+        onSave={handleAddShift}
       />
     </div>
   );

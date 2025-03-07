@@ -33,6 +33,7 @@ export default function ScheduleGrid({
   staff,
   onShiftMove,
 }: ScheduleGridProps) {
+  console.log(shifts, staff);
   const mouseSensor = useSensor(MouseSensor, {
     // Require the mouse to move by 10 pixels before activating
     activationConstraint: {

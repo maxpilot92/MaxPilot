@@ -32,7 +32,7 @@ export function StaffCard({ staff, onRemove, onAdd, overlay }: StaffCardProps) {
             {staff.personalDetails.fullName}
           </p>
           <p className="text-xs text-muted-foreground">
-            {staff.workDetails.role}
+            {/* {staff.workDetails.role} */}
           </p>
         </div>
       </div>

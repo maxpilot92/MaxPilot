@@ -95,11 +95,11 @@ export default function TeamEditPage() {
 
   const fetchStaff = useCallback(async () => {
     try {
-      const response = await axios.get("/api/user/staff/staff-details");
-      if (!response.data?.data?.data) {
+      const response = await axios.get("/api/user/user-details");
+      if (!response.data?.data) {
         throw new Error("Invalid staff data format");
       }
-      return response.data.data.data;
+      return response.data.data;
     } catch (error) {
       console.error("Error fetching staff:", error);
       toast({
