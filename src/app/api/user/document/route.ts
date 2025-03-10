@@ -6,8 +6,8 @@ export async function POST(request: NextRequest) {
   try {
     const data: Documents = await request.json();
 
-    const { role, fileName, url, expires } = data;
-
+    const { role, fileName, url, expires, category } = data;
+    console.log(data);
     if (!fileName || !url) {
       return NextResponse.json(
         { message: "file url and name is required" },
@@ -18,6 +18,14 @@ export async function POST(request: NextRequest) {
     if (expires) {
       const expiresDate = new Date(expires);
       data.status = expiresDate > new Date() ? "Not Active" : "Active";
+    }
+
+    if (!expires) {
+      data.expires = "Empty";
+    }
+
+    if (!category) {
+      data.category = "Empty";
     }
 
     if (!role) {

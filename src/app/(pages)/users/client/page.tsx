@@ -166,15 +166,16 @@ export default function ClientListPage() {
 
   const handleArchiveAll = async () => {
     try {
-      await axios.post("/api/user/staff/alter-archive", {
+      const response = await axios.post("/api/user/staff/alter-archive", {
         operation: "archive",
         role: "client",
       });
+      console.log(response);
       setShowArchiveDialog(false);
       fetchClients();
       toast({
         title: "Success",
-        description: "All clients archived successfully",
+        description: response.data.message,
       });
     } catch (error) {
       console.error("Error archiving clients:", error);

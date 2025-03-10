@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Download, Filter, Search } from "lucide-react";
+import { Download, Search } from "lucide-react";
 import {
   Table,
   TableBody,
@@ -21,18 +21,14 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import { AlertDialog } from "@/components/alert-dialog";
-import { StaffFilterDialog } from "@/components/staff/staff-filter-dialog";
-import type { FilterParams } from "@/types/filterStaff";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
 import { StaffData } from "@/types/staff/staff";
 
 export default function ArchivedStaffPage() {
   const [showUnarchiveDialog, setShowUnarchiveDialog] = useState(false);
-  const [showFilterDialog, setShowFilterDialog] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [filters, setFilters] = useState<FilterParams>({});
   const [allStaffData, setAllStaffData] = useState<StaffData[]>([]); // Store all staff data
   const [displayedStaffData, setDisplayedStaffData] = useState<StaffData[]>([]); // Filtered and paginated data
   const [pagination, setPagination] = useState({
@@ -51,21 +47,13 @@ export default function ArchivedStaffPage() {
     try {
       setLoading(true);
       const params = new URLSearchParams({
-        userRole: "staff",
+        userRole: "client",
       });
-
-      // Add filters to params
-      Object.entries(filters).forEach(([key, value]) => {
-        if (value) {
-          params.append(key, value.toString());
-        }
-      });
-      console.log(params, "params");
 
       const response = await axios.get(
         `/api/user/staff/archived-staff?${params.toString()}`
       );
-
+      console.log(response);
       if (response.data?.data) {
         const staffData = Array.isArray(response.data.data)
           ? response.data.data
@@ -113,7 +101,7 @@ export default function ArchivedStaffPage() {
   // Fetch initial data
   useEffect(() => {
     fetchStaff();
-  }, [filters]);
+  }, []);
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -124,19 +112,19 @@ export default function ArchivedStaffPage() {
     try {
       await axios.post("/api/user/staff/alter-archive", {
         operation: "unarchive",
-        role: "staff",
+        role: "client",
       });
       toast({
         title: "Success",
-        description: "All staff unarchived successfully",
+        description: "All client unarchived successfully",
       });
       setShowUnarchiveDialog(false);
       fetchStaff();
     } catch (error) {
-      console.error("Error unarchiving staff:", error);
+      console.error("Error unarchiving client:", error);
       toast({
         title: "Error",
-        description: "Failed to unarchive staff. Please try again.",
+        description: "Failed to unarchive client. Please try again.",
         variant: "destructive",
       });
     }
@@ -147,22 +135,17 @@ export default function ArchivedStaffPage() {
       await axios.put(`/api/user/staff/manage-archive/${data.id}`, data);
       toast({
         title: "Success",
-        description: "Staff member unarchived successfully",
+        description: "Client unarchived successfully",
       });
       fetchStaff();
     } catch (error) {
-      console.error("Error unarchiving staff member:", error);
+      console.error("Error unarchiving client member:", error);
       toast({
         title: "Error",
-        description: "Failed to unarchive staff member. Please try again.",
+        description: "Failed to unarchive client member. Please try again.",
         variant: "destructive",
       });
     }
-  };
-
-  const handleApplyFilters = (newFilters: FilterParams) => {
-    setFilters(newFilters);
-    setCurrentPage(1);
   };
 
   return (
@@ -190,14 +173,7 @@ export default function ArchivedStaffPage() {
               onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
-          <Button
-            variant="outline"
-            className="gap-2"
-            onClick={() => setShowFilterDialog(true)}
-          >
-            <Filter className="h-4 w-4" />
-            Filter
-          </Button>
+
           <Button variant="outline" className="gap-2">
             <Download className="h-4 w-4" />
             Download
@@ -210,11 +186,11 @@ export default function ArchivedStaffPage() {
           <TableHeader className="bg-[#F1F7F6]">
             <TableRow>
               <TableHead>Name</TableHead>
-              <TableHead>Role</TableHead>
-              <TableHead>E-mail</TableHead>
+              <TableHead>ID</TableHead>
+              <TableHead>NDIS</TableHead>
               <TableHead>Mobile</TableHead>
               <TableHead>Address</TableHead>
-              <TableHead>Employment Type</TableHead>
+              <TableHead>Email</TableHead>
               <TableHead>Action</TableHead>
             </TableRow>
           </TableHeader>
@@ -235,11 +211,11 @@ export default function ArchivedStaffPage() {
               displayedStaffData.map((staff) => (
                 <TableRow key={staff.id}>
                   <TableCell>{staff.personalDetails.fullName}</TableCell>
-                  <TableCell>{staff.workDetails.role}</TableCell>
-                  <TableCell>{staff.personalDetails.email}</TableCell>
+                  <TableCell>{staff.id}</TableCell>
+                  <TableCell>{staff.id}</TableCell>
                   <TableCell>{staff.personalDetails.phoneNumber}</TableCell>
                   <TableCell>{staff.personalDetails.address}</TableCell>
-                  <TableCell>{staff.workDetails.employmentType}</TableCell>
+                  <TableCell>{staff.personalDetails.email}</TableCell>
                   <TableCell>
                     <Button
                       variant="secondary"
@@ -321,13 +297,6 @@ export default function ArchivedStaffPage() {
         onConfirm={handleUnarchiveAll}
         onCancel={() => setShowUnarchiveDialog(false)}
         name="Unarchive All"
-      />
-
-      <StaffFilterDialog
-        open={showFilterDialog}
-        onOpenChange={setShowFilterDialog}
-        onApplyFilters={handleApplyFilters}
-        currentFilters={filters}
       />
     </div>
   );

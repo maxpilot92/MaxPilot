@@ -34,3 +34,19 @@ export async function POST(request: NextRequest) {
     );
   }
 }
+
+export async function GET() {
+  try {
+    const shift = await prisma.shift.findMany();
+    return NextResponse.json(
+      { data: shift, message: "shift retrived successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: "shift failed to schedule", error },
+      { status: 500 }
+    );
+  }
+}

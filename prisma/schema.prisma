@@ -208,29 +208,38 @@ model Heading {
 // }
 
 model Shift {
-    id                  String  @id @default(uuid())
-    clientId            String?
-    client              Staff?  @relation("client-shiftUserRelation", fields: [clientId], references: [id])
-    carerId             String?
-    carer               Staff?  @relation("carer-shiftUserRelation", fields: [carerId], references: [id])
-    payGroup            String?
-    priceBook           String?
-    funds               String?
-    shiftType           String?
-    additionalShiftType String?
-    allowance           String?
+    id                   String   @id @default(uuid())
+    clientId             String?
+    client               Staff?   @relation("client-shiftUserRelation", fields: [clientId], references: [id])
+    carerId              String?
+    carer                Staff?   @relation("carer-shiftUserRelation", fields: [carerId], references: [id])
+    payGroup             String?
+    priceBook            String?
+    funds                String?
+    shiftType            String?
+    additionalShiftType  String?
+    allowance            String?
+    data                 String?
+    shiftFinishesNextDay Boolean?
+    startTime            String?
+    endTime              String?
+    date                 String?
+    repeat               Boolean?
+    address              String?
+    unitNumber           String?
+    instructions         String?
 }
 
 model Documents {
-    id              String    @id @default(uuid())
+    id              String   @id @default(uuid())
     fileName        String
     url             String
     role            String
     category        String?
-    expires         DateTime?
-    staffVisibility Boolean?  @default(false)
-    noExpiration    Boolean?  @default(false)
+    expires         String?
+    staffVisibility Boolean? @default(false)
+    noExpiration    Boolean? @default(false)
     status          String?
-    createdAt       DateTime  @default(now())
-    updatedAt       DateTime  @updatedAt
+    createdAt       DateTime @default(now())
+    updatedAt       DateTime @updatedAt
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Calendar, Filter, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,136 +12,94 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import ScheduleGrid from "./schedule-grid";
-import { AddShiftSheet, ShiftData } from "./add-shift-sheet";
-import { type Shift, ShiftStatus, type StaffMember } from "@/types/schedule";
+import { AddShiftSheet, type ShiftData } from "./add-shift-sheet";
 import axios from "axios";
 import { useToast } from "@/hooks/use-toast";
-
-const STAFF_MEMBERS: StaffMember[] = [
-  {
-    id: "admin",
-    name: "Admin",
-    role: "Office",
-    hours: 21,
-  },
-  {
-    id: "jane-doe",
-    name: "Jane Doe",
-    role: "Office",
-    hours: 9,
-  },
-  {
-    id: "office-user",
-    name: "Office User",
-    role: "Office",
-    hours: 9,
-  },
-];
-
-const INITIAL_SHIFTS: Shift[] = [
-  {
-    id: "1",
-    staffId: "admin",
-    staffName: "Admin",
-    date: "2024-12-02",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.CREATED,
-  },
-  {
-    id: "2",
-    staffId: "admin",
-    staffName: "Admin",
-    date: "2024-12-03",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.ON_LEAVE,
-  },
-  {
-    id: "3",
-    staffId: "jane-doe",
-    staffName: "Jane Doe",
-    date: "2024-12-04",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.PUBLISHED,
-  },
-  {
-    id: "4",
-    staffId: "jane-doe",
-    staffName: "Jane Doe",
-    date: "2024-12-05",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.APPROVED,
-  },
-  {
-    id: "5",
-    staffId: "office-user",
-    staffName: "Office User",
-    date: "2024-12-06",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.CANCELLED,
-  },
-  {
-    id: "6",
-    staffId: "office-user",
-    staffName: "Office User",
-    date: "2024-12-07",
-    startTime: "10:00",
-    endTime: "17:30",
-    serviceType: "Personal Care",
-    status: ShiftStatus.INVOICED,
-  },
-];
+import { format, addMonths, subMonths } from "date-fns";
 
 export default function SchedulePage() {
-  const [shifts, setShifts] = useState<Shift[]>(INITIAL_SHIFTS);
-  const [staff] = useState<StaffMember[]>(STAFF_MEMBERS);
-  const [dateRange] = useState("23 Dec - 29 Dec 2024");
-  const [view] = useState("Weekly");
+  const [dateRange, setDateRange] = useState(
+    format(new Date(), "dd MMM - dd MMM yyyy")
+  );
+  const [view, setView] = useState("Weekly");
   const [addShiftOpen, setAddShiftOpen] = useState(false);
   const { toast } = useToast();
+  const [currentMonth, setCurrentMonth] = useState(new Date());
 
-  const handleShiftMove = (
+  // Use the updated useStaff hook
+  // const { data: staff, loading: staffLoading } = useStaff({
+  //   userRole: "staff",
+  // });
+
+  // Update date range when month changes
+  useEffect(() => {
+    const startOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth(),
+      1
+    );
+    const endOfMonth = new Date(
+      currentMonth.getFullYear(),
+      currentMonth.getMonth() + 1,
+      0
+    );
+
+    setDateRange(
+      `${format(startOfMonth, "dd MMM")} - ${format(endOfMonth, "dd MMM yyyy")}`
+    );
+  }, [currentMonth]);
+
+  const handlePreviousMonth = () => {
+    setCurrentMonth((prev) => subMonths(prev, 1));
+  };
+
+  const handleNextMonth = () => {
+    setCurrentMonth((prev) => addMonths(prev, 1));
+  };
+
+  const handleShiftMove = async (
     shiftId: string,
     newDate: string,
     newStaffId: string
   ) => {
-    setShifts((prevShifts) =>
-      prevShifts.map((shift) =>
-        shift.id === shiftId
-          ? {
-              ...shift,
-              date: newDate,
-              staffId: newStaffId,
-              staffName:
-                staff.find((s) => s.id === newStaffId)?.name || shift.staffName,
-            }
-          : shift
-      )
-    );
+    try {
+      // Update the shift in the backend
+      await axios.patch(`/api/schedule/${shiftId}`, {
+        date: newDate,
+        carerId: newStaffId,
+      });
+
+      toast({
+        title: "Success",
+        description: "Shift moved successfully",
+      });
+    } catch (error) {
+      console.error("Error moving shift:", error);
+      toast({
+        title: "Error",
+        description: "Failed to move shift",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleAddShift = async (data: ShiftData) => {
-    console.log("New shift data:", data);
-    // Handle adding the new shift here
     try {
-      const response = await axios.post("/api/schedule", data);
+      await axios.post("/api/schedule", data);
 
-      console.log(response);
       toast({
         title: "Success",
         description: "Shift added successfully",
       });
+
+      setAddShiftOpen(false);
     } catch (error) {
-      console.log(error);
+      console.error("Error adding shift:", error);
+      toast({
+        title: "Error",
+        description: "Failed to add shift",
+        variant: "destructive",
+      });
     }
   };
 
@@ -179,12 +137,20 @@ export default function SchedulePage() {
             Filter
           </Button>
 
-          <Button variant="outline" className="w-[200px]">
-            <Calendar className="mr-2 h-4 w-4" />
-            {dateRange}
-          </Button>
+          <div className="flex items-center">
+            <Button variant="outline" size="icon" onClick={handlePreviousMonth}>
+              &lt;
+            </Button>
+            <Button variant="outline" className="mx-1 w-[200px]">
+              <Calendar className="mr-2 h-4 w-4" />
+              {dateRange}
+            </Button>
+            <Button variant="outline" size="icon" onClick={handleNextMonth}>
+              &gt;
+            </Button>
+          </div>
 
-          <Select defaultValue={view}>
+          <Select value={view} onValueChange={setView}>
             <SelectTrigger className="w-[200px]">
               <SelectValue placeholder="View" />
             </SelectTrigger>
@@ -227,11 +193,8 @@ export default function SchedulePage() {
         </div>
       </div>
 
-      <ScheduleGrid
-        shifts={shifts}
-        staff={staff}
-        onShiftMove={handleShiftMove}
-      />
+      <ScheduleGrid onShiftMove={handleShiftMove} />
+
       <AddShiftSheet
         open={addShiftOpen}
         onOpenChange={setAddShiftOpen}

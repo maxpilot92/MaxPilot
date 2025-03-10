@@ -21,9 +21,9 @@ export default function ScheduleCell({ id, shifts }: ScheduleCellProps) {
         isOver ? "bg-gray-50" : ""
       }`}
     >
-      {shifts.map((shift) => (
-        <ShiftCard key={shift.id} shift={shift} />
-      ))}
+      {shifts && shifts.length > 0
+        ? shifts.map((shift) => <ShiftCard key={shift.id} shift={shift} />)
+        : null}
     </div>
   );
 }

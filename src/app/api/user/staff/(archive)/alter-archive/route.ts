@@ -23,18 +23,15 @@ export async function POST(request: Request) {
       // Get all staff in current state (excluding admins for archive operation)
       const staffToUpdate = await tx.staff.findMany({
         where: {
-          role: role,
+          role: {
+            not: "Admin",
+            contains: role,
+          },
           archived: currentState,
-          ...(operation === "archive" && {
-            workDetails: {
-              role: {
-                not: "Admin",
-              },
-            },
-          }),
         },
         select: {
           id: true,
+          role: true,
         },
       });
 
@@ -47,17 +44,17 @@ export async function POST(request: Request) {
         };
       }
 
+      const user = staffToUpdate.map((user) => user.role);
+      console.log(user);
+
       // Update all matching staff
       const updateResult = await tx.staff.updateMany({
         where: {
           archived: currentState,
-          ...(operation === "archive" && {
-            workDetails: {
-              role: {
-                not: "Admin",
-              },
-            },
-          }),
+          role: {
+            not: "Admin",
+            contains: role,
+          },
         },
         data: {
           archived: targetState,
@@ -67,7 +64,7 @@ export async function POST(request: Request) {
 
       return {
         count: updateResult.count,
-        message: `Successfully ${operation}d ${updateResult.count} staff members`,
+        message: `Successfully ${operation}d ${updateResult.count} ${role} members`,
       };
     });
 

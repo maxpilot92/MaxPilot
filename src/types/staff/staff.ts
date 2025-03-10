@@ -76,6 +76,7 @@ export interface WorkDetails {
 export interface StaffData {
   createdAt: string; // or use `Date` if you plan to convert it to a Date object
   id: string;
+  role: string;
   personalDetails: PersonalDetails;
   personalDetailsId: string;
   updatedAt: string; // or use `Date` if you plan to convert it to a Date object

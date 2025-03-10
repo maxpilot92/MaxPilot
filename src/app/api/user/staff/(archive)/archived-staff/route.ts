@@ -5,11 +5,11 @@ import { EmploymentTypeStatus, Prisma, RoleStatus } from "@prisma/client";
 type EmploymentType = EmploymentTypeStatus;
 type Role = RoleStatus;
 
-interface FilterParams {
-  employmentType: EmploymentType | null;
-  role: Role | null;
-  teamId: string | null;
-}
+// interface FilterParams {
+//   employmentType: EmploymentType | null;
+//   role: Role | null;
+//   teamId: string | null;
+// }
 
 export async function GET(request: Request): Promise<NextResponse> {
   try {
@@ -20,45 +20,36 @@ export async function GET(request: Request): Promise<NextResponse> {
     ) as EmploymentType | null;
     const role = searchParams.get("role") as Role | null;
     const teamId = searchParams.get("teamId");
-    const userRole = searchParams.get("userRole")?.toLowerCase();
+    const userRole = searchParams.get("userRole")?.toLowerCase() as string;
+
+    if (!userRole) {
+      return NextResponse.json(
+        { message: "User role is required" },
+        { status: 404 }
+      );
+    }
 
     // Build the where clause for one-to-one relation with proper team relation handling
     const whereClause: Prisma.StaffWhereInput = {
       archived: true,
-      role: userRole as RoleStatus,
-      workDetails: {
-        is: {
-          ...(employmentType && { employmentType }),
-          ...(role && { role }),
-          ...(teamId && {
-            team: {
-              is: {
-                id: teamId,
-              },
-            },
-          }),
-        },
-      },
+      role: userRole,
     };
 
     const archivedStaff = await prisma.staff.findMany({
-      where: whereClause,
-      include: {
-        personalDetails: {
-          select: {
-            fullName: true,
-            email: true,
-            phoneNumber: true,
-            address: true,
-          },
-        },
+      where: {
+        ...whereClause,
         workDetails: {
-          select: {
-            role: true,
-            employmentType: true,
-            team: true,
-          },
+          ...(userRole === "staff" && {
+            employmentType: employmentType || undefined,
+            role: role || undefined,
+            teamId: teamId || undefined,
+          }),
         },
+      },
+      include: {
+        personalDetails: true,
+        workDetails: userRole === "staff",
+        publicInformation: userRole === "client",
       },
     });
 
@@ -69,17 +60,17 @@ export async function GET(request: Request): Promise<NextResponse> {
       );
     }
 
-    const filters: FilterParams = {
-      employmentType,
-      role,
-      teamId,
-    };
+    // const filters: FilterParams = {
+    //   employmentType,
+    //   role,
+    //   teamId,
+    // };
 
     return NextResponse.json(
       {
         data: archivedStaff,
         message: "Archived Staffs retrieved",
-        filters,
+        // filters,
       },
       { status: 200 }
     );

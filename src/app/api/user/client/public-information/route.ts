@@ -156,7 +156,14 @@ export async function PUT(request: NextRequest) {
 
     const publicInformation = await prisma.publicInformation.update({
       where: { staffId: userId },
-      data: updateData,
+      data: {
+        ...updateData,
+        Staff: {
+          connect: {
+            id: userId,
+          },
+        },
+      },
     });
 
     if (!publicInformation) {

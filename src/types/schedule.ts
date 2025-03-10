@@ -9,13 +9,26 @@ export enum ShiftStatus {
 
 export interface Shift {
   id: string;
-  staffId: string;
-  staffName: string;
+  carerId: string;
+  carerName?: string;
+  clientId?: string;
+  clientName?: string;
   date: string;
   startTime: string;
   endTime: string;
-  serviceType: string;
+  serviceType?: string;
   status: ShiftStatus;
+  payGroup?: string;
+  priceBook?: string;
+  funds?: string;
+  shiftType?: string;
+  additionalShiftType?: string;
+  allowance?: string;
+  shiftFinishesNextDay?: boolean;
+  repeat?: boolean;
+  address?: string;
+  unitNumber?: string;
+  instructions?: string;
 }
 
 export interface StaffMember {
