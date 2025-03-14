@@ -24,23 +24,121 @@ import {
 import { AddDocumentDialog } from "@/components/client/add-document-dialog";
 import { Documents } from "@prisma/client";
 import axios from "axios";
+import { DatePicker } from "@/components/client/date-picker";
+import { useToast } from "@/hooks/use-toast";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useFormatDate } from "@/hooks/use-formatDate";
+
+const CATEGORY = [
+  "Aged Care Assessment",
+  "Autism Assessment",
+  "Hoist Training",
+  "Food Handling",
+  "Manual Handling",
+  "Medication Handling",
+  "Suctioning Care",
+  "Online Training",
+];
 
 export default function DocumentsPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [documents, setDocuments] = useState<Documents[]>([]);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [appVisibilityStates, setAppVisibilityStates] = useState<
+    Record<string, boolean>
+  >({});
+  const [expirationStates, setExpirationStates] = useState<
+    Record<string, boolean>
+  >({});
+
+  const { toast } = useToast();
+
+  const handleDateSelect = async (id: string, date: string | undefined) => {
+    setDocuments((docs) =>
+      docs.map((doc) =>
+        doc.id === id ? { ...doc, expires: date ?? null } : doc
+      )
+    );
+
+    const response = await axios.put(`/api/user/document?documentId=${id}`, {
+      expires: date,
+    });
+    console.log(response.data);
+    toast({
+      title: "Document Updated",
+      description: "Document expiration date updated successfully",
+    });
+  };
+  const getDocuments = async () => {
+    try {
+      const response = await axios.get("/api/user/document?role=client");
+      setDocuments(response.data.data);
+
+      // Initialize checkbox states
+      const initialAppVisibilityStates: Record<string, boolean> = {};
+      const initialExpirationStates: Record<string, boolean> = {};
+
+      response.data.data.forEach((doc: Documents) => {
+        initialAppVisibilityStates[doc.id] = doc.staffVisibility || false;
+        initialExpirationStates[doc.id] = doc.noExpiration || false;
+      });
+
+      setAppVisibilityStates(initialAppVisibilityStates);
+      setExpirationStates(initialExpirationStates);
+    } catch (error) {
+      console.log(error);
+    }
+  };
 
   useEffect(() => {
-    const getDocuments = async () => {
-      try {
-        const response = await axios.get("/api/user/document?role=client");
-        setDocuments(response.data.data);
-      } catch (error) {
-        console.log(error);
-      }
-    };
     getDocuments();
   }, []);
+
+  const updateCheckboxValue = async (
+    key: string,
+    value: boolean,
+    id: string
+  ) => {
+    try {
+      await axios.put(`/api/user/document?documentId=${id}`, {
+        [key]: value,
+      });
+      getDocuments();
+    } catch (error) {
+      console.error("Error updating checkbox value:", error);
+    }
+  };
+
+  const updateCategory = async (category: string, id: string) => {
+    try {
+      await axios.put(`/api/user/document?documentId=${id}`, {
+        category,
+      });
+      toast({
+        title: "Category Updated",
+        description: "Document category updated successfully",
+      });
+      getDocuments();
+    } catch (error) {
+      console.error("Error updating category:", error);
+    }
+  };
+
+  // Handler for App Visibility checkbox
+  const handleAppVisibilityChange = async (value: boolean, id: string) => {
+    setAppVisibilityStates((prev) => ({ ...prev, [id]: value })); // Update state for this document
+    await updateCheckboxValue("staffVisibility", value, id); // Make API call
+  };
+
+  // Handler for Expiration checkbox
+  const handleExpirationChange = async (value: boolean, id: string) => {
+    setExpirationStates((prev) => ({ ...prev, [id]: value })); // Update state for this document
+    await updateCheckboxValue("noExpiration", value, id); // Make API call
+  };
 
   return (
     <div className="p-6">
@@ -103,21 +201,60 @@ export default function DocumentsPage() {
                   <span
                     className={doc.category === "Empty" ? "text-red-500" : ""}
                   >
-                    {doc.category}
+                    {doc.category === "Empty" ? (
+                      <DropdownMenu>
+                        <DropdownMenuTrigger>
+                          <span className="text-red-500 cursor-pointer">
+                            Empty
+                          </span>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent>
+                          {CATEGORY.map((cat: string) => (
+                            <div
+                              onClick={() => updateCategory(cat, doc.id)}
+                              key={cat}
+                              className="p-2 hover:bg-gray-100 cursor-pointer"
+                            >
+                              {cat}
+                            </div>
+                          ))}
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    ) : (
+                      doc.category
+                    )}
                   </span>
                 </TableCell>
-                <TableCell
-                  className={doc.category === "Empty" ? "text-red-500" : ""}
-                >
-                  {doc.expires?.toString()}
+                <TableCell>
+                  {doc.expires === "Empty" ? (
+                    <DatePicker
+                      date={doc.expires ? new Date(doc.expires) : undefined}
+                      onSelect={(date) =>
+                        handleDateSelect(doc.id, date?.toISOString())
+                      }
+                    />
+                  ) : // useFormatDate(doc.expires ?? "")
+                  doc.expires ? (
+                    useFormatDate(doc.expires)
+                  ) : null}
                 </TableCell>
                 <TableCell>
-                  <Checkbox checked={doc.staffVisibility ?? undefined} />
+                  <Checkbox
+                    checked={appVisibilityStates[doc.id] || false}
+                    onCheckedChange={(value: boolean) =>
+                      handleAppVisibilityChange(value, doc.id)
+                    }
+                  />
                 </TableCell>
                 <TableCell>
-                  <Checkbox checked={doc.noExpiration ?? undefined} />
+                  <Checkbox
+                    checked={expirationStates[doc.id] || false}
+                    onCheckedChange={(value: boolean) =>
+                      handleExpirationChange(value, doc.id)
+                    }
+                  />
                 </TableCell>
-                <TableCell>{doc.updatedAt.toString()}</TableCell>
+                <TableCell>{useFormatDate(doc.updatedAt.toString())}</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
                     Active

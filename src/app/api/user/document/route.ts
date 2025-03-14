@@ -62,10 +62,17 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const document = await prisma.documents.findMany({
+    const result = await prisma.documents.findMany({
       where: {
         role,
       },
+    });
+
+    const document = result.map((doc) => {
+      return {
+        ...doc,
+        expires: doc.noExpiration ? null : doc.expires,
+      };
     });
 
     return NextResponse.json(
@@ -76,6 +83,37 @@ export async function GET(request: NextRequest) {
     console.error(error);
     return NextResponse.json(
       { message: "Documents failed to retrive" },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: NextRequest) {
+  try {
+    const data = await request.json();
+    const id = request.nextUrl.searchParams.get("documentId");
+    if (!id) {
+      return NextResponse.json(
+        { message: "document id is required" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.documents.update({
+      where: {
+        id,
+      },
+      data,
+    });
+
+    return NextResponse.json(
+      { message: "Documents updated successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: "Documents failed to update" },
       { status: 500 }
     );
   }
