@@ -91,6 +91,7 @@ model Staff {
     publicInformation PublicInformation?
     clientShifts      Shift[]            @relation("client-shiftUserRelation")
     carerShifts       Shift[]            @relation("carer-shiftUserRelation")
+    fund              Fund[]
 }
 
 model Team {
@@ -242,4 +243,18 @@ model Documents {
     status          String?
     createdAt       DateTime @default(now())
     updatedAt       DateTime @updatedAt
+}
+
+model Fund {
+    id        String   @id @default(uuid())
+    name      String
+    starts    String?
+    expires   String?
+    amount    Float?
+    balance   Float?
+    clientId  String
+    isDefault Boolean  @default(false)
+    client    Staff    @relation(fields: [clientId], references: [id])
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
 }

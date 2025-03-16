@@ -118,3 +118,32 @@ export async function PUT(request: NextRequest) {
     );
   }
 }
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const id = request.nextUrl.searchParams.get("documentId");
+    if (!id) {
+      return NextResponse.json(
+        { message: "document id is required" },
+        { status: 400 }
+      );
+    }
+
+    await prisma.documents.delete({
+      where: {
+        id,
+      },
+    });
+
+    return NextResponse.json(
+      { message: "Documents deleted successfully" },
+      { status: 200 }
+    );
+  } catch (error) {
+    console.error(error);
+    return NextResponse.json(
+      { message: "Documents failed to delete" },
+      { status: 500 }
+    );
+  }
+}

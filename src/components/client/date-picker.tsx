@@ -1,9 +1,6 @@
 "use client";
 
 import * as React from "react";
-import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -11,6 +8,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { Calendar as CalendarIcon } from "lucide-react"; // Import an icon for the button
+import { format, isValid } from "date-fns"; // Import date-fns for formatting and validation
 
 interface DatePickerProps {
   date?: Date;
@@ -28,24 +27,34 @@ export function DatePicker({ date, onSelect }: DatePickerProps) {
   };
 
   const handleCancel = () => {
-    setSelectedDate(date);
-    setIsOpen(false);
+    setSelectedDate(date); // Reset to the original date
+    setIsOpen(false); // Close the popover
   };
 
   const handleOk = () => {
-    onSelect?.(selectedDate);
-    setIsOpen(false);
+    onSelect?.(selectedDate); // Pass the selected date to the parent component
+    setIsOpen(false); // Close the popover
   };
 
   return (
     <Popover open={isOpen} onOpenChange={setIsOpen}>
       <PopoverTrigger asChild>
-        <span className="text-red-500 cursor-pointer">Empty</span>
+        <Button
+          variant="outline"
+          className="w-full justify-start text-left font-normal"
+        >
+          <CalendarIcon className="mr-2 h-4 w-4" />
+          {selectedDate && isValid(selectedDate)
+            ? format(selectedDate, "PPP") // Format the date if it's valid
+            : "Pick a date"}
+        </Button>
       </PopoverTrigger>
       <PopoverContent className="w-auto p-0" align="start">
         <div className="bg-[#F0F9F6] p-3">
           <div className="text-sm">
-            {/* {format(selectedDate || new Date(), "MMMM yyyy")} */}
+            {selectedDate && isValid(selectedDate)
+              ? format(selectedDate, "MMMM yyyy") // Format the date if it's valid
+              : "Select a date"}
           </div>
         </div>
         <Calendar

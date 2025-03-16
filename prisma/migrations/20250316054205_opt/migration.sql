@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Fund" ALTER COLUMN "amount" DROP NOT NULL,
+ALTER COLUMN "balance" DROP NOT NULL;

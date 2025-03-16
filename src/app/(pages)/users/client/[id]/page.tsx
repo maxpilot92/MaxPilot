@@ -29,7 +29,9 @@ import { useParams } from "next/navigation";
 import { EditClientDetailsDialog } from "@/components/client/edit-client-details-dialog";
 import { AddNewHeadingDialog } from "@/components/client/add-new-heading-dialog";
 import { AddDocumentDialog } from "@/components/client/document-upload-dialog";
-import { Documents } from "@prisma/client";
+import { Documents, Fund } from "@prisma/client";
+import { CreateFundDialog } from "@/components/client/create-fund-dialog";
+import { useFormatDate } from "@/hooks/use-formatDate";
 
 interface ClientData {
   id: string;
@@ -64,11 +66,13 @@ export default function ClientProfilePage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [clientData, setClientData] = useState<ClientData>();
   const [open, setOpen] = useState<boolean>(false);
+  const [fundsOpen, setFundsOpen] = useState<boolean>(false);
   const [shouldUpdate, setShouldUpdate] = useState<boolean>(false);
   const [publicInformation, setPublicInformation] =
     useState<PublicInformation>();
   const [isClicked, setIsClicked] = useState<boolean>(false);
   const [documents, setDocuments] = useState<Documents[]>();
+  const [funds, setFunds] = useState<Fund[]>([]);
   const { toast } = useToast();
   const params = useParams();
 
@@ -148,9 +152,13 @@ export default function ClientProfilePage() {
 
   const handleArchiveClient = async () => {
     if (!clientData) return;
-
+    console.log("Client data:", clientData);
     try {
-      await axios(`/api/user/staff/manage-archive/${clientData.id}`);
+      const response = await axios.put(
+        `/api/user/staff/manage-archive/${params.id}`,
+        clientData
+      );
+      console.log(response);
       toast({
         title: "Success",
         description: "Client archived successfully",
@@ -255,10 +263,8 @@ export default function ClientProfilePage() {
     const fetchDocuments = async () => {
       try {
         const response = await axios.get<GetDocument>(
-          "/api/user/client/document?role=client"
+          `/api/user/document?role=client`
         );
-        console.log(response);
-
         if (response.data && Array.isArray(response.data.data)) {
           const updatedDocuments = response.data.data.map((document) => {
             const expiresDate = new Date(document.expires);
@@ -269,14 +275,29 @@ export default function ClientProfilePage() {
 
           setDocuments(updatedDocuments);
         } else {
-          console.error("Invalid response data:", response.data);
+          console.log("Invalid response data:", response.data);
         }
       } catch (error) {
-        console.error("Error fetching documents:", error);
+        console.log("Error fetching documents:", error);
       }
     };
 
     fetchDocuments();
+  }, []);
+
+  useEffect(() => {
+    const fetchFunds = async () => {
+      try {
+        const response = await axios.get(
+          `/api/user/client/fund?clientId=${params.id}`
+        );
+        setFunds(response.data.data);
+        console.log(response);
+      } catch (error) {
+        console.log("Error fetching funds:", error);
+      }
+    };
+    fetchFunds();
   }, []);
 
   if (!clientData) {
@@ -531,7 +552,12 @@ export default function ClientProfilePage() {
                 <Button variant="ghost" size="sm" className="text-primary">
                   View Billing
                 </Button>
-                <Button variant="ghost" size="sm" className="text-primary">
+                <Button
+                  onClick={() => setFundsOpen(true)}
+                  variant="ghost"
+                  size="sm"
+                  className="text-primary"
+                >
                   Add Fund
                 </Button>
               </div>
@@ -549,18 +575,25 @@ export default function ClientProfilePage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell
-                      colSpan={6}
-                      className="text-center py-4 text-muted-foreground"
-                    >
-                      No Data Available
-                    </TableCell>
-                  </TableRow>
+                  {funds?.map((fund) => (
+                    <TableRow key={fund.id}>
+                      <TableCell>{fund.name}</TableCell>
+                      <TableCell>
+                        {useFormatDate(fund.starts as string)}
+                      </TableCell>
+                      <TableCell>
+                        {useFormatDate(fund.expires as string)}
+                      </TableCell>
+                      <TableCell>{fund.amount}</TableCell>
+                      <TableCell>$ {fund.balance ?? 0}</TableCell>
+                      <TableCell>{fund.isDefault.toString()}</TableCell>
+                    </TableRow>
+                  ))}
                 </TableBody>
               </Table>
             </CardContent>
           </Card>
+          <CreateFundDialog onOpenChange={setFundsOpen} open={fundsOpen} />
 
           {/* Documents */}
           <Card>
@@ -592,11 +625,13 @@ export default function ClientProfilePage() {
                       <TableRow key={document.id}>
                         <TableCell>{document.category || ""}</TableCell>
                         <TableCell>
-                          {document.expires ? document.expires.toString() : ""}
+                          {document.expires
+                            ? useFormatDate(document.expires.toString())
+                            : ""}
                         </TableCell>
                         <TableCell>
                           {document.updatedAt
-                            ? document.updatedAt.toString()
+                            ? useFormatDate(document.updatedAt.toString())
                             : ""}
                         </TableCell>
                         <TableCell>{document.status || ""}</TableCell>

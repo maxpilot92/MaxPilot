@@ -140,6 +140,22 @@ export default function DocumentsPage() {
     await updateCheckboxValue("noExpiration", value, id); // Make API call
   };
 
+  const handleDelete = async (id: string) => {
+    try {
+      const response = await axios.delete(
+        `/api/user/document?documentId=${id}`
+      );
+      console.log(response.data);
+      toast({
+        title: "Document Deleted",
+        description: "Document deleted successfully",
+      });
+      getDocuments();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   return (
     <div className="p-6">
       {/* Header */}
@@ -265,7 +281,12 @@ export default function DocumentsPage() {
                     <Button variant="ghost" size="icon" className="h-8 w-8">
                       <Edit2 className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8">
+                    <Button
+                      onClick={() => handleDelete(doc.id)}
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>

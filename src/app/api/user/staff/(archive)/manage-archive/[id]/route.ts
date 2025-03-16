@@ -14,6 +14,7 @@ export async function PUT(request: NextRequest) {
     const url = new URL(request.url);
     const splittedUrl = url.toString().split("/");
     const id = splittedUrl.at(-1);
+
     if (!id) {
       return ApiError(
         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
