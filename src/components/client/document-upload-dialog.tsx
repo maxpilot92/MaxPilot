@@ -3,7 +3,7 @@
 import type React from "react";
 
 import { useState, useRef, useEffect } from "react";
-import { X, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import {
@@ -103,14 +103,6 @@ export function AddDocumentDialog({
       <DialogContent className="sm:max-w-[425px]">
         <div className="flex items-center justify-between border-b pb-4">
           <h2 className="text-lg font-semibold">Add Documents</h2>
-          <Button
-            variant="ghost"
-            size="icon"
-            className="h-6 w-6 rounded-full"
-            onClick={() => onOpenChange(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
         </div>
 
         <div className="py-6 space-y-6">

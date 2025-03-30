@@ -77,11 +77,12 @@ model Settings {
     theme                String  @default("light")
 }
 
-model Staff {
+model User {
     id                String             @id @default(uuid())
     role              String             @default("staff")
     subRoles          String?
     personalDetailsId String
+    companyId         String
     personalDetails   PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
     workDetailsId     String?
     workDetails       WorkDetails?       @relation(fields: [workDetailsId], references: [id])
@@ -102,14 +103,14 @@ model Team {
 }
 
 model WorkDetails {
-    id             String               @id @default(uuid())
-    worksAt        String
-    hiredOn        DateTime
+    id             String                @id @default(uuid())
+    worksAt        String?
+    hiredOn        DateTime?
     role           RoleStatus
-    employmentType EmploymentTypeStatus
+    employmentType EmploymentTypeStatus?
     teamId         String? // Optional team reference
-    team           Team?                @relation("TeamWorkDetails", fields: [teamId], references: [id])
-    Staff          Staff[]
+    team           Team?                 @relation("TeamWorkDetails", fields: [teamId], references: [id])
+    user           User[]
 
     @@index([teamId])
 }
@@ -118,15 +119,15 @@ model PersonalDetails {
     id               String         @id @default(uuid())
     fullName         String
     email            String         @unique
-    phoneNumber      String         @unique
-    address          String
-    dob              DateTime
-    emergencyContact String
+    phoneNumber      String?        @unique
+    address          String?
+    dob              DateTime?
+    emergencyContact String?
     language         String?
     nationality      String?
     religion         String?
     gender           GenderStatus?
-    Staff            Staff[]
+    user             User[]
     unit             String?
     maritalStatus    MaritalStatus?
     clientStatus     String?
@@ -140,7 +141,7 @@ model PublicInformation {
     needToKnowInfo Json?
     usefulInfo     Json?
     staffId        String   @unique
-    Staff          Staff    @relation(fields: [staffId], references: [id])
+    user           User     @relation(fields: [staffId], references: [id])
 }
 
 model Heading {
@@ -211,9 +212,9 @@ model Heading {
 model Shift {
     id                   String   @id @default(uuid())
     clientId             String?
-    client               Staff?   @relation("client-shiftUserRelation", fields: [clientId], references: [id])
+    client               User?    @relation("client-shiftUserRelation", fields: [clientId], references: [id])
     carerId              String?
-    carer                Staff?   @relation("carer-shiftUserRelation", fields: [carerId], references: [id])
+    carer                User?    @relation("carer-shiftUserRelation", fields: [carerId], references: [id])
     payGroup             String?
     priceBook            String?
     funds                String?
@@ -254,7 +255,21 @@ model Fund {
     balance   Float?
     clientId  String
     isDefault Boolean  @default(false)
-    client    Staff    @relation(fields: [clientId], references: [id])
+    client    User     @relation(fields: [clientId], references: [id])
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
+}
+
+model Form {
+    id           String    @id @default(uuid())
+    name         String    @default("Untitled")
+    documentType String    @default("Template")
+    type         String    @default("General")
+    sentDate     DateTime?
+    responses    String?
+    createdAt    DateTime  @default(now())
+    status       String    @default("Pending")
+    action       String?
+    form         Json?
+    updatedAt    DateTime  @updatedAt
 }

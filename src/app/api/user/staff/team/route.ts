@@ -26,7 +26,7 @@ export async function POST(req: NextRequest) {
     }
 
     // First, get the workDetails IDs for the provided staff
-    const staffWithWorkDetails = await prisma.staff.findMany({
+    const staffWithWorkDetails = await prisma.user.findMany({
       where: {
         id: {
           in: staffIds,
@@ -127,7 +127,7 @@ export async function GET(request: NextRequest) {
       include: {
         workDetails: {
           include: {
-            Staff: {
+            user: {
               include: {
                 personalDetails: {
                   select: { fullName: true }, // Get only fullName
@@ -148,7 +148,7 @@ export async function GET(request: NextRequest) {
       id: team.id,
       name: team.name,
       staff: team.workDetails.flatMap((work) =>
-        work.Staff.map((staff) => ({
+        work.user.map((staff) => ({
           fullName: staff.personalDetails.fullName,
         }))
       ),

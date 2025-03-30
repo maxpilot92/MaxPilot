@@ -109,7 +109,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    const staff = await prisma.staff.findUnique({
+    const staff = await prisma.user.findUnique({
       where: { id },
       include: {
         workDetails: {
@@ -167,7 +167,7 @@ export async function PUT(request: NextRequest) {
     validateWorkDetails(data);
 
     // Find the staff member first
-    const staff = await prisma.staff.findUnique({
+    const staff = await prisma.user.findUnique({
       where: { id },
       include: {
         workDetails: true,

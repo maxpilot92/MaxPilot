@@ -111,8 +111,7 @@ const menuItems = [
   {
     title: "Forms",
     icon: FormInput,
-    url: "/forms",
-    hasSubmenu: true,
+    url: "/users/forms",
   },
   {
     title: "Incidents",

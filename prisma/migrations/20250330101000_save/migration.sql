@@ -1,0 +1,10 @@
+-- AlterTable
+ALTER TABLE "PersonalDetails" ALTER COLUMN "phoneNumber" DROP NOT NULL,
+ALTER COLUMN "address" DROP NOT NULL,
+ALTER COLUMN "dob" DROP NOT NULL,
+ALTER COLUMN "emergencyContact" DROP NOT NULL;
+
+-- AlterTable
+ALTER TABLE "WorkDetails" ALTER COLUMN "worksAt" DROP NOT NULL,
+ALTER COLUMN "hiredOn" DROP NOT NULL,
+ALTER COLUMN "employmentType" DROP NOT NULL;

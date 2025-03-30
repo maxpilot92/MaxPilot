@@ -15,6 +15,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (!role) {
+      return NextResponse.json(
+        { message: "user role is required" },
+        { status: 400 }
+      );
+    }
+
     if (expires) {
       const expiresDate = new Date(expires);
       data.status = expiresDate > new Date() ? "Not Active" : "Active";
@@ -28,12 +35,6 @@ export async function POST(request: NextRequest) {
       data.category = "Empty";
     }
 
-    if (!role) {
-      return NextResponse.json(
-        { message: "user role is required" },
-        { status: 400 }
-      );
-    }
     await prisma.documents.create({
       data,
     });

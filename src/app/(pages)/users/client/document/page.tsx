@@ -56,6 +56,7 @@ export default function DocumentsPage() {
   >({});
 
   const { toast } = useToast();
+  const formatDate = useFormatDate();
 
   const handleDateSelect = async (id: string, date: string | undefined) => {
     setDocuments((docs) =>
@@ -251,7 +252,7 @@ export default function DocumentsPage() {
                     />
                   ) : // useFormatDate(doc.expires ?? "")
                   doc.expires ? (
-                    useFormatDate(doc.expires)
+                    formatDate(doc.expires)
                   ) : null}
                 </TableCell>
                 <TableCell>
@@ -270,7 +271,7 @@ export default function DocumentsPage() {
                     }
                   />
                 </TableCell>
-                <TableCell>{useFormatDate(doc.updatedAt.toString())}</TableCell>
+                <TableCell>{formatDate(doc.updatedAt.toString())}</TableCell>
                 <TableCell>
                   <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-1 text-xs font-medium text-green-700">
                     Active

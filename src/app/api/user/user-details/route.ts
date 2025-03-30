@@ -37,6 +37,7 @@ enum MaritalStatus {
 
 interface CreateUserInput {
   role?: string;
+  companyId: string;
   personalDetails: {
     fullName: string;
     email: string;
@@ -134,10 +135,20 @@ function validateWorkDetails(data: CreateUserInput["workDetails"]): void {
 export async function POST(request: NextRequest) {
   try {
     const data: CreateUserInput = await request.json();
-    // Validate input data
-    validatePersonalDetails(data.personalDetails);
-    if (data.workDetails) {
-      validateWorkDetails(data.workDetails);
+    console.log(data, "At create user");
+    if (!(data.role === "Admin")) {
+      // Validate input data
+      validatePersonalDetails(data.personalDetails);
+      if (data.workDetails) {
+        validateWorkDetails(data.workDetails);
+      }
+    }
+
+    if (!data.companyId) {
+      return NextResponse.json(
+        { error: "Company ID is required" },
+        { status: 400 }
+      );
     }
 
     // Check for existing user with same email
@@ -153,13 +164,15 @@ export async function POST(request: NextRequest) {
     }
 
     // Create user with all related data in a transaction
-    let newUser;
-    await prisma.$transaction(async (tx) => {
+
+    const user = await prisma.$transaction(async (tx) => {
       // Create personal details
       const personalDetails = await tx.personalDetails.create({
         data: {
           ...data.personalDetails,
-          dob: new Date(data.personalDetails.dob),
+          dob: data.personalDetails.dob
+            ? new Date(data.personalDetails.dob)
+            : null,
         },
       });
 
@@ -169,40 +182,36 @@ export async function POST(request: NextRequest) {
         workDetails = await tx.workDetails.create({
           data: {
             ...data.workDetails,
-            hiredOn: new Date(data.workDetails.hiredOn),
+            hiredOn: data.workDetails.hiredOn
+              ? new Date(data.workDetails.hiredOn)
+              : null,
           },
         });
       }
 
-      // Create public information if provided
-      //   let publicInformation;
-      //   if (data.publicInformation) {
-      //     publicInformation = await tx.publicInformation.create({
-      //       data: {
-      //         generalInfo: data.publicInformation.generalInfo,
-      //         needToKnowInfo: data.publicInformation.needToKnowInfo,
-      //         usefulInfo: data.publicInformation.usefulInfo,
-      //         User: {
-      //           create: {
-      //             role: data.role || "Staff",
-      //             personalDetailsId: personalDetails.id,
-      //             workDetailsId: workDetails?.id,
-      //           },
-      //         },
-      //       },
-      //     });
-      //   } else {
-      // Create user without public information
-      newUser = await tx.staff.create({
+      const newUser = await tx.user.create({
         data: {
+          companyId: data.companyId,
           role: workDetails ? "staff" : "client",
           personalDetailsId: personalDetails.id,
           workDetailsId: workDetails?.id,
         },
+        include: {
+          personalDetails: true,
+          workDetails: true,
+          publicInformation: true,
+        },
       });
+
+      return newUser;
     });
+
+    await redis.set(`${data.role}:${user.id}`, JSON.stringify(user));
+
+    console.log("User cached in Redis");
+
     return NextResponse.json(
-      { message: "User created successfully", data: newUser },
+      { message: "User created successfully", data: user },
       { status: 201 }
     );
   } catch (error) {
@@ -231,14 +240,32 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role");
     const employmentType = searchParams.get("employmentType");
     const teamId = searchParams.get("teamId");
-    const cacheKey = `${userRole}`;
+    const companyId = searchParams.get("companyId");
+
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
 
     // if (!page || !limit || !gender || !role || !employmentType || !teamId) {
     //   try {
-    //     const cachedData = await redis.get(cacheKey);
-    //     if (cachedData) {
-    //       console.log(cacheKey + " data retrieved from cache");
-    //       return NextResponse.json(JSON.parse(cachedData));
+    //     let cursor = "0";
+    //     const keys = [];
+    //     do {
+    //       const result = await redis.scan(cursor, "MATCH", `${userRole}:*`);
+    //       cursor = result[0]; // Update the cursor
+    //       keys.push(...result[1]); // Add keys to the list
+    //     } while (cursor !== "0"); // Continue until cursor is '0'
+
+    //     const users = await redis.mget(keys);
+
+    //     if (users && users.length > 0) {
+    //       console.log("Data fetched from cache");
+    //       return NextResponse.json({
+    //         data: users.map((user) => JSON.parse(user as string)),
+    //       });
     //     }
     //   } catch (cacheError) {
     //     console.error("Error accessing cache:", cacheError);
@@ -252,8 +279,9 @@ export async function GET(request: NextRequest) {
     const skip = (page - 1) * limit;
 
     // Build where clause
-    const where: Prisma.StaffWhereInput = {
+    const where: Prisma.UserWhereInput = {
       archived: false,
+      companyId,
       ...(gender && {
         personalDetails: {
           gender: gender as GenderStatus,
@@ -281,7 +309,7 @@ export async function GET(request: NextRequest) {
 
     // Get users and total count
     const [users, total] = await Promise.all([
-      prisma.staff.findMany({
+      prisma.user.findMany({
         where,
         include: {
           personalDetails: true,
@@ -294,7 +322,7 @@ export async function GET(request: NextRequest) {
           createdAt: "desc",
         },
       }),
-      prisma.staff.count({ where }),
+      prisma.user.count({ where }),
     ]);
 
     // Prepare response data
@@ -308,9 +336,18 @@ export async function GET(request: NextRequest) {
       },
     };
 
+    console.log("Data fetched from database");
+
     // Store in Redis cache with expiration time of 20 minutes (1200 seconds)
     try {
-      await redis.set(cacheKey, JSON.stringify(responseData), "EX", 1200);
+      responseData.data.forEach(async (user) => {
+        await redis.set(
+          `${userRole}:${user.id}`,
+          JSON.stringify(user),
+          "EX",
+          1200
+        );
+      });
     } catch (cacheError) {
       console.error("Error storing data in cache:", cacheError);
       // Continue with response even if caching fails

@@ -25,10 +25,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const isAdmin = await prisma.staff.findUnique({
+    const isAdmin = await prisma.user.findUnique({
       where: {
         id: userId,
-        subRoles: "Admin",
+        role: "Admin",
       },
     });
 

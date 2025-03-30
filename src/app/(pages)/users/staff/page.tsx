@@ -27,6 +27,8 @@ import { useRouter } from "next/navigation";
 import { StaffData } from "@/types/staff/staff";
 import { FilterParams } from "@/types/filterStaff";
 import { AlertDialog } from "@/components/alert-dialog";
+import { useBusinessStore } from "@/store/useBusinessStore";
+import { useUser } from "@clerk/nextjs";
 
 interface PaginationMetadata {
   total: number;
@@ -50,8 +52,22 @@ export default function StaffListPage() {
     totalPages: 1,
   });
   const [loading, setLoading] = useState(true);
+  const { setCompanyId, companyId } = useBusinessStore();
+
   const { toast } = useToast();
   const router = useRouter();
+  const { user } = useUser();
+
+  useEffect(() => {
+    if (user) {
+      const company_id = user.publicMetadata.companyId as string;
+      if (company_id) {
+        setCompanyId(company_id);
+      } else {
+        console.error("Company ID not found in user metadata");
+      }
+    }
+  }, [user]);
 
   const fetchStaff = async () => {
     try {
@@ -59,9 +75,12 @@ export default function StaffListPage() {
 
       const queryParams: Record<string, string> = {};
 
+      if (!companyId) {
+        console.error("Company ID not found");
+        return;
+      }
       // Set userRole to 'staff' first
       filters.userRole = "staff";
-
       // Add filters to query params if they exist
       if (filters.gender) queryParams.gender = filters.gender;
       if (filters.role) queryParams.role = filters.role;
@@ -76,7 +95,7 @@ export default function StaffListPage() {
         status: string;
         data: StaffData[];
         meta: PaginationMetadata;
-      }>(`/api/user/user-details?${params}`);
+      }>(`/api/user/user-details?${params}&companyId=${companyId}`);
 
       setAllStaffData(response.data.data);
     } catch (error) {
@@ -125,8 +144,10 @@ export default function StaffListPage() {
 
   // Fetch initial data
   useEffect(() => {
-    fetchStaff();
-  }, [filters]);
+    if (companyId) {
+      fetchStaff();
+    }
+  }, [filters, companyId]);
 
   // Reset to first page when search query changes
   useEffect(() => {
@@ -158,7 +179,7 @@ export default function StaffListPage() {
     setFilters(newFilters);
     setCurrentPage(1);
   };
-
+  console.log(companyId);
   return (
     <div className="container py-6">
       <div className="mb-6">

@@ -1,12 +1,13 @@
-export function useFormatDate(dateString: string): React.ReactNode {
-  if (dateString === null) {
-    return null;
-  }
+// hooks/use-formatDate.tsx
+export function useFormatDate() {
+  return (dateString: string | null): React.ReactNode => {
+    if (!dateString) return null;
 
-  const date = new Date(dateString);
-  const day = String(date.getUTCDate()).padStart(2, "0");
-  const month = String(date.getUTCMonth() + 1).padStart(2, "0");
-  const year = date.getUTCFullYear();
+    const date = new Date(dateString);
+    const day = String(date.getUTCDate()).padStart(2, "0");
+    const month = String(date.getUTCMonth() + 1).padStart(2, "0");
+    const year = date.getUTCFullYear();
 
-  return `${month}/${day}/${year}`;
+    return `${month}/${day}/${year}`;
+  };
 }

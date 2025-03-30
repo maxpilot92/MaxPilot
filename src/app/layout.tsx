@@ -3,8 +3,6 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { ClerkProvider } from "@clerk/nextjs";
-import { TopNav } from "@/components/top-nav";
-import { SideNav } from "@/components/side-nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -32,14 +30,7 @@ export default function RootLayout({
         <body
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
-          <div className="flex h-screen bg-background">
-            <SideNav>
-              <main className="flex-1 overflow-auto">
-                <TopNav />
-                {children}
-              </main>
-            </SideNav>
-          </div>
+          {children}
           <Toaster />
         </body>
       </html>

@@ -3,6 +3,7 @@ import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import { PersonalDetails } from "@prisma/client";
+import redis from "@/lib/redis";
 
 function validatePersonalDetails(data: PersonalDetails): void {
   const requiredFields = [
@@ -33,6 +34,9 @@ function validatePersonalDetails(data: PersonalDetails): void {
   }
 
   // Validate date of birth
+  if (!data.dob) {
+    throw new ApiErrors(HTTP_STATUS.BAD_REQUEST, "Date of birth is required");
+  }
   const dob = new Date(data.dob);
   if (isNaN(dob.getTime())) {
     throw new ApiErrors(
@@ -60,7 +64,7 @@ export async function PUT(request: NextRequest) {
     validatePersonalDetails(data);
 
     // Find the staff member first
-    const user = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
       include: {
         personalDetails: true,
@@ -79,11 +83,20 @@ export async function PUT(request: NextRequest) {
         email: data.email,
         phoneNumber: data.phoneNumber,
         address: data.address,
-        dob: new Date(data.dob),
+        dob: data.dob ? new Date(data.dob) : null,
         emergencyContact: data.emergencyContact,
         language: data.language,
         nationality: data.nationality,
         gender: data.gender,
+      },
+      include: {
+        user: {
+          include: {
+            personalDetails: true,
+            workDetails: true,
+            publicInformation: true,
+          },
+        },
       },
     });
 
@@ -93,11 +106,42 @@ export async function PUT(request: NextRequest) {
         "Error updating personal details"
       );
     }
+    const personalDetails = {
+      ...updatedPersonalDetails,
+      dob: updatedPersonalDetails.dob
+        ? updatedPersonalDetails.dob.toISOString()
+        : null,
+    };
 
-    return ApiSuccess(
-      updatedPersonalDetails,
-      "Personal details updated successfully"
+    const workDetails = {
+      ...updatedPersonalDetails.user[0].workDetails,
+    };
+
+    const publicInformation = {
+      ...updatedPersonalDetails.user[0].publicInformation,
+    };
+
+    const staff = {
+      id: updatedPersonalDetails.user[0].id,
+      role: updatedPersonalDetails.user[0].role,
+      subRoles: updatedPersonalDetails.user[0].subRoles,
+      personalDetailsId: updatedPersonalDetails.user[0].personalDetailsId,
+      workDetailsId: updatedPersonalDetails.user[0].workDetailsId,
+      archived: updatedPersonalDetails.user[0].archived,
+      createdAt: updatedPersonalDetails.user[0].createdAt,
+      updatedAt: updatedPersonalDetails.user[0].updatedAt,
+      personalDetails,
+      workDetails,
+      publicInformation,
+    };
+    await redis.set(
+      `${updatedPersonalDetails.user[0].role}:${updatedPersonalDetails.user[0].id}`,
+      JSON.stringify(staff)
     );
+
+    console.log("Data updated in cache");
+
+    return ApiSuccess("Personal details updated successfully");
   } catch (error: unknown) {
     console.error("Error in PUT personal details:", {
       name: error instanceof Error ? error.name : "Unknown",
@@ -144,7 +188,7 @@ export async function DELETE(request: NextRequest) {
     }
 
     // Find the staff member first
-    const user = await prisma.staff.findUnique({
+    const user = await prisma.user.findUnique({
       where: { id },
       include: {
         personalDetails: true,

@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const existingUser = await prisma.staff.findUnique({
+    const existingUser = await prisma.user.findUnique({
       where: {
         id: userId,
       },
@@ -158,7 +158,7 @@ export async function PUT(request: NextRequest) {
       where: { staffId: userId },
       data: {
         ...updateData,
-        Staff: {
+        user: {
           connect: {
             id: userId,
           },

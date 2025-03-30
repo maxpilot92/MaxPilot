@@ -38,6 +38,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Team } from "@/types/staff/staff";
+import { useBusinessStore } from "@/store/useBusinessStore";
 
 export function StaffForm() {
   const form = useForm<PersonalDetailsFormValues>({
@@ -60,17 +61,15 @@ export function StaffForm() {
     },
   });
   const [teams, setTeams] = useState<Team[]>([]);
+  const { companyId } = useBusinessStore();
 
   const router = useRouter();
-  const {
-    formState: { errors },
-  } = form;
-
-  useEffect(() => {
-    console.log(errors);
-  }, [errors]);
 
   async function onSubmit(data: PersonalDetailsFormValues) {
+    if (!companyId) {
+      console.error("Company ID is missing");
+      return;
+    }
     const personalDetails = {
       fullName: data.fullName,
       email: data.email,
@@ -92,6 +91,7 @@ export function StaffForm() {
     };
     try {
       const response = await axios.post("/api/user/user-details", {
+        companyId,
         personalDetails: personalDetails,
         workDetails: workDetails,
       });

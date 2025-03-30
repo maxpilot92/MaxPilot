@@ -25,7 +25,7 @@ async function getRecordType(id: string) {
     console.log("Data not found in cache, querying database...");
 
     // First check if it's a staff member (not a client)
-    const staff = await prisma.staff.findFirst({
+    const staff = await prisma.user.findFirst({
       where: {
         id,
         role: { not: "client" },
@@ -44,7 +44,7 @@ async function getRecordType(id: string) {
     }
 
     // If not staff, check if it's a client
-    const client = await prisma.staff.findFirst({
+    const client = await prisma.user.findFirst({
       where: {
         id,
         role: "client",
@@ -66,7 +66,7 @@ async function getRecordType(id: string) {
     console.error("Error accessing cache:", error);
 
     // If there's a Redis error, fall back to database query
-    const staff = await prisma.staff.findFirst({
+    const staff = await prisma.user.findFirst({
       where: {
         id,
         role: { not: "client" },
@@ -83,7 +83,7 @@ async function getRecordType(id: string) {
       return { type: "staff", record: staff };
     }
 
-    const client = await prisma.staff.findFirst({
+    const client = await prisma.user.findFirst({
       where: {
         id,
         role: "client",
@@ -114,16 +114,6 @@ export async function GET(request: NextRequest) {
       return ApiError(
         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
       );
-    }
-
-    // Check if skip cache parameter is provided
-    const skipCache = url.searchParams.get("skipCache") === "true";
-
-    if (skipCache) {
-      // If skip cache is true, invalidate the cache for this ID
-      await redis.del(`staff:${id}`);
-      await redis.del(`client:${id}`);
-      console.log("Cache invalidated due to skipCache parameter");
     }
 
     const { type, record } = await getRecordType(id);
@@ -259,7 +249,7 @@ export async function GET(request: NextRequest) {
 //               usefulInfo: usefulInfoJson,
 //             },
 //           });
-          
+
 //           // Update the Staff record to connect to the new PublicInformation
 //           await prisma.staff.update({
 //             where: { id: record.id },

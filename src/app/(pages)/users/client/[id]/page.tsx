@@ -65,7 +65,7 @@ interface GetDocument {
 export default function ClientProfilePage() {
   const [showArchiveDialog, setShowArchiveDialog] = useState(false);
   const [clientData, setClientData] = useState<ClientData>();
-  const [open, setOpen] = useState<boolean>(false);
+  const [documentOpen, setDocumentOpen] = useState<boolean>(false);
   const [fundsOpen, setFundsOpen] = useState<boolean>(false);
   const [shouldUpdate, setShouldUpdate] = useState<boolean>(false);
   const [publicInformation, setPublicInformation] =
@@ -73,9 +73,11 @@ export default function ClientProfilePage() {
   const [isClicked, setIsClicked] = useState<boolean>(false);
   const [documents, setDocuments] = useState<Documents[]>();
   const [funds, setFunds] = useState<Fund[]>([]);
+  const [needToKnowOpen, setNeedToKnowOpen] = useState<boolean>(false);
+  const [usefullOpen, setUsefullOpen] = useState<boolean>(false);
   const { toast } = useToast();
   const params = useParams();
-
+  const formatDate = useFormatDate();
   // gets client data
   useEffect(() => {
     async function getClientData() {
@@ -491,7 +493,7 @@ export default function ClientProfilePage() {
               <div className="flex items-center justify-between">
                 <span className="font-medium">Need to know information</span>
                 <Button
-                  onClick={() => setOpen(true)}
+                  onClick={() => setNeedToKnowOpen(true)}
                   variant="ghost"
                   size="sm"
                   className="text-primary"
@@ -499,11 +501,11 @@ export default function ClientProfilePage() {
                   <Plus className="h-4 w-4" />
                   {publicInformation?.needToKnowInfo ? "Edit" : "Add"}
                 </Button>
-                {/* <AddHeadingDialog open={open} onOpenChange={setOpen} onAdd={} /> */}
+
                 <AddNewHeadingDialog
                   title="needToKnowInfo"
-                  open={open}
-                  onOpenChange={setOpen}
+                  open={needToKnowOpen}
+                  onOpenChange={setNeedToKnowOpen}
                   userId={clientData.id}
                   shouldUpdate={shouldUpdate}
                   onSuccess={refreshPublicInformation}
@@ -518,7 +520,7 @@ export default function ClientProfilePage() {
               <div className="flex items-center justify-between">
                 <span className="font-medium">Useful information</span>
                 <Button
-                  onClick={() => setOpen(true)}
+                  onClick={() => setUsefullOpen(true)}
                   variant="ghost"
                   size="sm"
                   className="text-primary"
@@ -528,8 +530,8 @@ export default function ClientProfilePage() {
                 </Button>
                 <AddNewHeadingDialog
                   title="usefulInfo"
-                  open={open}
-                  onOpenChange={setOpen}
+                  open={usefullOpen}
+                  onOpenChange={setUsefullOpen}
                   userId={clientData.id}
                   shouldUpdate={shouldUpdate}
                   onSuccess={refreshPublicInformation}
@@ -578,11 +580,9 @@ export default function ClientProfilePage() {
                   {funds?.map((fund) => (
                     <TableRow key={fund.id}>
                       <TableCell>{fund.name}</TableCell>
+                      <TableCell>{formatDate(fund.starts as string)}</TableCell>
                       <TableCell>
-                        {useFormatDate(fund.starts as string)}
-                      </TableCell>
-                      <TableCell>
-                        {useFormatDate(fund.expires as string)}
+                        {formatDate(fund.expires as string)}
                       </TableCell>
                       <TableCell>{fund.amount}</TableCell>
                       <TableCell>$ {fund.balance ?? 0}</TableCell>
@@ -600,7 +600,7 @@ export default function ClientProfilePage() {
             <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Documents</CardTitle>
               <Button
-                onClick={() => setOpen(true)}
+                onClick={() => setDocumentOpen(true)}
                 variant="ghost"
                 size="sm"
                 className="text-primary"
@@ -626,12 +626,12 @@ export default function ClientProfilePage() {
                         <TableCell>{document.category || ""}</TableCell>
                         <TableCell>
                           {document.expires
-                            ? useFormatDate(document.expires.toString())
+                            ? formatDate(document.expires.toString())
                             : ""}
                         </TableCell>
                         <TableCell>
                           {document.updatedAt
-                            ? useFormatDate(document.updatedAt.toString())
+                            ? formatDate(document.updatedAt.toString())
                             : ""}
                         </TableCell>
                         <TableCell>{document.status || ""}</TableCell>
@@ -639,7 +639,10 @@ export default function ClientProfilePage() {
                     ))}
                 </TableBody>
               </Table>
-              <AddDocumentDialog onOpenChange={setOpen} open={open} />
+              <AddDocumentDialog
+                onOpenChange={setDocumentOpen}
+                open={documentOpen}
+              />
             </CardContent>
           </Card>
 

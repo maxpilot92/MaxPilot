@@ -1,4 +1,4 @@
-import { Staff } from "@prisma/client";
+import { User } from "@prisma/client";
 
 // Type for gender
 type GenderStatus = "Male" | "Female";
@@ -60,7 +60,7 @@ export interface PersonalDetails {
   unit?: string;
   maritalStatus?: MaritalStatus;
   religion?: string;
-  staff: Staff;
+  staff: User;
   phoneNumber: string;
 }
 

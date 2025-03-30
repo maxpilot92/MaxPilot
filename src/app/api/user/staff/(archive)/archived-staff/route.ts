@@ -30,12 +30,12 @@ export async function GET(request: Request): Promise<NextResponse> {
     }
 
     // Build the where clause for one-to-one relation with proper team relation handling
-    const whereClause: Prisma.StaffWhereInput = {
+    const whereClause: Prisma.UserWhereInput = {
       archived: true,
       role: userRole,
     };
 
-    const archivedStaff = await prisma.staff.findMany({
+    const archivedStaff = await prisma.user.findMany({
       where: {
         ...whereClause,
         workDetails: {

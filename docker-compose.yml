@@ -1,14 +1,55 @@
-version: "3"
+version: '3.8'
 
 services:
+  maxpilot:
+    build:
+      context: .
+      target: production
+      args:
+        DATABASE_URL: postgresql://postgres:password@postgres:5432/test
+    ports:
+      - "3000:3000"
+      - "5555:5555"
+    volumes:
+      - .:/usr/src/app
+      - /usr/src/app/node_modules
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgresql://postgres:password@postgres:5432/test
+    command: >
+      sh -c "until pg_isready -h postgres -p 5432 -U postgres; do sleep 5; done && npx prisma migrate dev --name init && npm run dev"
+
+  postgres:
+    image: postgres:13
+    restart: always
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: test
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d test" ]
+      interval: 10s
+      retries: 10
+      start_period: 20s
+
   redis:
-    image: redis:latest
-    container_name: redis
+    image: redis:6
+    restart: always
     ports:
       - "6379:6379"
     volumes:
-      - redis_data:/data
+      - redis:/data
 
 volumes:
-  redis_data:
-    driver: local
+  postgres:
+  redis:
