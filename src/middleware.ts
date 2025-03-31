@@ -6,14 +6,19 @@ const authRoute = createRouteMatcher(["/sign-up", "/sign-in"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
+  const DOMAIN = process.env.DOMAIN;
   if (isProtectedRoute(req)) {
     if (!userId) {
-      return NextResponse.redirect(`http://localhost:3000/sign-in`);
+      return NextResponse.redirect(
+        `${DOMAIN ? DOMAIN : "http://localhost:3000"}/sign-in`
+      );
     }
   }
 
   if (authRoute(req) && userId) {
-    return NextResponse.redirect(`http://localhost:3000`);
+    return NextResponse.redirect(
+      `${DOMAIN ? DOMAIN : "http://localhost:3000"}/dashboard`
+    );
   }
 
   return NextResponse.next();

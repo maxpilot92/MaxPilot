@@ -179,7 +179,6 @@ export default function StaffListPage() {
     setFilters(newFilters);
     setCurrentPage(1);
   };
-  console.log(companyId);
   return (
     <div className="container py-6">
       <div className="mb-6">

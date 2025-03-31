@@ -249,29 +249,29 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // if (!page || !limit || !gender || !role || !employmentType || !teamId) {
-    //   try {
-    //     let cursor = "0";
-    //     const keys = [];
-    //     do {
-    //       const result = await redis.scan(cursor, "MATCH", `${userRole}:*`);
-    //       cursor = result[0]; // Update the cursor
-    //       keys.push(...result[1]); // Add keys to the list
-    //     } while (cursor !== "0"); // Continue until cursor is '0'
+    if (!page || !limit || !gender || !role || !employmentType || !teamId) {
+      try {
+        let cursor = "0";
+        const keys = [];
+        do {
+          const result = await redis.scan(cursor, "MATCH", `${userRole}:*`);
+          cursor = result[0]; // Update the cursor
+          keys.push(...result[1]); // Add keys to the list
+        } while (cursor !== "0"); // Continue until cursor is '0'
 
-    //     const users = await redis.mget(keys);
+        const users = await redis.mget(keys);
 
-    //     if (users && users.length > 0) {
-    //       console.log("Data fetched from cache");
-    //       return NextResponse.json({
-    //         data: users.map((user) => JSON.parse(user as string)),
-    //       });
-    //     }
-    //   } catch (cacheError) {
-    //     console.error("Error accessing cache:", cacheError);
-    //     // Continue with database query if cache access fails
-    //   }
-    // }
+        if (users && users.length > 0) {
+          console.log("Data fetched from cache");
+          return NextResponse.json({
+            data: users.map((user) => JSON.parse(user as string)),
+          });
+        }
+      } catch (cacheError) {
+        console.error("Error accessing cache:", cacheError);
+        // Continue with database query if cache access fails
+      }
+    }
 
     console.log("redis caching failed");
 

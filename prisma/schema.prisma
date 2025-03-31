@@ -273,3 +273,15 @@ model Form {
     form         Json?
     updatedAt    DateTime  @updatedAt
 }
+
+model Stripe {
+    id                       String   @id @default(uuid())
+    userId                   String
+    stripePriceId            String
+    stripeCurrentPeriodEnd   DateTime
+    stripeCustomerId         String?
+    stripeSubscriptionId     String?
+    stripeSubscriptionStatus String
+    createdAt                DateTime @default(now())
+    updatedAt                DateTime @updatedAt
+}
