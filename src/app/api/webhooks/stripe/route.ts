@@ -1,27 +1,33 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/stripe";
-import { headers } from "next/headers";
 import Stripe from "stripe";
 import prisma from "@/lib/prisma";
 
 export const config = {
   api: {
-    bodyParser: false,
+    bodyParser: false, // Disable automatic body parsing to handle raw body
   },
 };
 
 export async function POST(request: Request) {
+  console.log("Received webhook request");
+
+  // Get raw request body
   const body = await request.text();
-  const header = await headers();
-  const signature = header.get("stripe-signature")!;
-  console.log("webhook running");
+  console.log("Request Body: ", body); // Log the raw body for debugging
+
+  // Extract the Stripe signature
+  const signature = request.headers.get("stripe-signature")!;
+  console.log("Stripe Signature: ", signature); // Debug the signature
+
   let event: Stripe.Event;
 
   try {
+    // Construct the event from Stripe's raw payload
     event = stripe.webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      process.env.STRIPE_WEBHOOK_SECRET! // Ensure this is correct
     );
   } catch (err) {
     console.error(`Webhook Error: ${err}`);
@@ -33,27 +39,19 @@ export async function POST(request: Request) {
 
   console.log(`Received event type: ${event.type}`);
 
-  // Handle relevant events
+  // Handle the relevant event types
   switch (event.type) {
     case "checkout.session.completed":
+      console.log("Handling checkout session completed event");
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
       await handleCheckoutSessionCompleted(checkoutSession);
       break;
 
     case "customer.subscription.updated":
+      console.log("Handling subscription updated event");
       const subscription = event.data.object as Stripe.Subscription;
       await handleSubscriptionUpdated(subscription);
       break;
-
-    // case "invoice.payment_succeeded":
-    //   const invoice = event.data.object as Stripe.Invoice;
-    //   await handlePaymentSucceeded(invoice);
-    //   break;
-
-    // case "invoice.payment_failed":
-    //   const failedInvoice = event.data.object as Stripe.Invoice;
-    //   await handlePaymentFailed(failedInvoice);
-    //   break;
 
     default:
       console.log(`Unhandled event type ${event.type}`);
@@ -104,11 +102,3 @@ async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
     },
   });
 }
-
-// async function handlePaymentSucceeded(invoice: Stripe.Invoice) {
-//   // Handle successful payment (send receipt, update records, etc.)
-// }
-
-// async function handlePaymentFailed(invoice: Stripe.Invoice) {
-//   // Notify user of payment failure
-// }
