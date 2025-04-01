@@ -35,9 +35,14 @@ enum MaritalStatus {
   Widowed = "Widowed",
 }
 
+type SubscriptionPeriod = "Monthly" | "Annually" | "Free_Trial";
+
 interface CreateUserInput {
   role?: string;
+  subRoles?: string;
   companyId: string;
+  subscriptionPeriod: SubscriptionPeriod;
+  subscriptionEnd: Date;
   personalDetails: {
     fullName: string;
     email: string;
@@ -131,12 +136,21 @@ function validateWorkDetails(data: CreateUserInput["workDetails"]): void {
   }
 }
 
+function getSubscriptionExpiryDate(
+  userCreationDate: Date,
+  subscriptionTime: number
+) {
+  const expiryDate = new Date(userCreationDate);
+  expiryDate.setDate(expiryDate.getDate() + subscriptionTime);
+  return expiryDate;
+}
+
 // API Routes
 export async function POST(request: NextRequest) {
   try {
     const data: CreateUserInput = await request.json();
-    console.log(data, "At create user");
-    if (!(data.role === "Admin")) {
+    console.log(data, "At post");
+    if (!(data.subRoles === "Admin")) {
       // Validate input data
       validatePersonalDetails(data.personalDetails);
       if (data.workDetails) {
@@ -149,6 +163,10 @@ export async function POST(request: NextRequest) {
         { error: "Company ID is required" },
         { status: 400 }
       );
+    }
+
+    if (!data.subscriptionPeriod) {
+      data.subscriptionPeriod = "Free_Trial";
     }
 
     // Check for existing user with same email
@@ -189,12 +207,30 @@ export async function POST(request: NextRequest) {
         });
       }
 
+      let subscriptionEnd;
+
+      switch (data.subscriptionPeriod) {
+        case "Monthly":
+          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 30);
+          break;
+        case "Annually":
+          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 365);
+          break;
+        case "Free_Trial":
+          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 14);
+          break;
+        default:
+          throw new Error("Invalid subscription period");
+      }
+
       const newUser = await tx.user.create({
         data: {
           companyId: data.companyId,
-          role: workDetails ? "staff" : "client",
+          role: data.subRoles || data.workDetails ? "staff" : "client",
+          subRoles: data.subRoles,
           personalDetailsId: personalDetails.id,
           workDetailsId: workDetails?.id,
+          subscriptionEnd,
         },
         include: {
           personalDetails: true,
@@ -249,35 +285,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (!page || !limit || !gender || !role || !employmentType || !teamId) {
-      try {
-        let cursor = "0";
-        const keys = [];
-        do {
-          const result = await redis.scan(cursor, "MATCH", `${userRole}:*`);
-          cursor = result[0]; // Update the cursor
-          keys.push(...result[1]); // Add keys to the list
-        } while (cursor !== "0"); // Continue until cursor is '0'
+    // if (!page || !limit || !gender || !role || !employmentType || !teamId) {
+    //   try {
+    //     let cursor = "0";
+    //     const keys = [];
+    //     do {
+    //       const result = await redis.scan(cursor, "MATCH", `${userRole}:*`);
+    //       cursor = result[0]; // Update the cursor
+    //       keys.push(...result[1]); // Add keys to the list
+    //     } while (cursor !== "0"); // Continue until cursor is '0'
 
-        const users = await redis.mget(keys);
+    //     const users = await redis.mget(keys);
 
-        if (users && users.length > 0) {
-          console.log("Data fetched from cache");
-          return NextResponse.json({
-            data: users.map((user) => JSON.parse(user as string)),
-          });
-        }
-      } catch (cacheError) {
-        console.error("Error accessing cache:", cacheError);
-        // Continue with database query if cache access fails
-      }
-    }
+    //     if (users && users.length > 0) {
+    //       console.log("Data fetched from cache");
+    //       return NextResponse.json({
+    //         data: users.map((user) => JSON.parse(user as string)),
+    //       });
+    //     }
+    //   } catch (cacheError) {
+    //     console.error("Error accessing cache:", cacheError);
+    //     // Continue with database query if cache access fails
+    //   }
+    // }
 
     console.log("redis caching failed");
 
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
-
+    console.log("company id", companyId);
     // Build where clause
     const where: Prisma.UserWhereInput = {
       archived: false,
@@ -306,7 +342,7 @@ export async function GET(request: NextRequest) {
         },
       }),
     };
-
+    console.log("where", where);
     // Get users and total count
     const [users, total] = await Promise.all([
       prisma.user.findMany({

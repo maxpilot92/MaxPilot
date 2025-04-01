@@ -152,7 +152,7 @@ export default function LoginPage() {
 
       if (result.status === "complete") {
         await setActive({ session: result.createdSessionId });
-        router.push("/dashboard");
+        router.push("/users/dashboard");
         toast({
           title: "Sign in successful",
           description: "Welcome back to MaxPilot!",
@@ -177,8 +177,8 @@ export default function LoginPage() {
     try {
       await signIn.authenticateWithRedirect({
         strategy: provider,
-        redirectUrl: "/sso-callback",
-        redirectUrlComplete: "/dashboard",
+        redirectUrl: "/users/dashboard",
+        redirectUrlComplete: "/users/dashboard",
       });
     } catch (error) {
       console.error(`${provider} sign in failed`, error);

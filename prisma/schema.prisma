@@ -37,6 +37,12 @@ enum EmploymentTypeStatus {
     Others
 }
 
+enum SubscriptionPeriod {
+    Monthly
+    Annually
+    Free_Trail
+}
+
 enum MaritalStatus {
     Single
     Married
@@ -78,21 +84,23 @@ model Settings {
 }
 
 model User {
-    id                String             @id @default(uuid())
-    role              String             @default("staff")
-    subRoles          String?
-    personalDetailsId String
-    companyId         String
-    personalDetails   PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
-    workDetailsId     String?
-    workDetails       WorkDetails?       @relation(fields: [workDetailsId], references: [id])
-    archived          Boolean            @default(false)
-    createdAt         DateTime           @default(now())
-    updatedAt         DateTime           @updatedAt
-    publicInformation PublicInformation?
-    clientShifts      Shift[]            @relation("client-shiftUserRelation")
-    carerShifts       Shift[]            @relation("carer-shiftUserRelation")
-    fund              Fund[]
+    id                 String             @id @default(uuid())
+    role               String             @default("staff")
+    subRoles           String?
+    personalDetailsId  String
+    companyId          String
+    personalDetails    PersonalDetails    @relation(fields: [personalDetailsId], references: [id])
+    workDetailsId      String?
+    workDetails        WorkDetails?       @relation(fields: [workDetailsId], references: [id])
+    archived           Boolean            @default(false)
+    createdAt          DateTime           @default(now())
+    updatedAt          DateTime           @updatedAt
+    publicInformation  PublicInformation?
+    clientShifts       Shift[]            @relation("client-shiftUserRelation")
+    carerShifts        Shift[]            @relation("carer-shiftUserRelation")
+    fund               Fund[]
+    subscriptionEnd    DateTime
+    subscriptionPeriod SubscriptionPeriod @default(Free_Trail)
 }
 
 model Team {

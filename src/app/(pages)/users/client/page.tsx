@@ -108,11 +108,6 @@ export default function ClientListPage() {
       setAllClientData(response.data.data);
     } catch (error) {
       console.error("Error fetching clients:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch client data. Please try again.",
-        variant: "destructive",
-      });
       setAllClientData([]);
     } finally {
       setLoading(false);

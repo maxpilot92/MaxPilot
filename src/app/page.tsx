@@ -18,11 +18,18 @@ import {
   Instagram,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/../public/logo.svg";
+import Website from "@/../public/website1 2.png";
+import DemoThumbnail from "@/../public/demo.svg";
+import Frame from "@/../public/frame.svg";
+import Access from "@/../public/access.svg";
+import GooglePlay from "@/../public/googlePlay.svg";
+import AppStore from "@/../public/appStore.svg";
+import Pricing from "@/components/pricing";
 
 export default function Home() {
   const [isScrolled, setIsScrolled] = useState(false);
+  const [cancel, setCancel] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -38,22 +45,27 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="flex min-h-screen flex-col px-10">
       {/* Promo Banner */}
-      <motion.div
-        initial={{ height: 30, opacity: 1 }}
-        animate={{ height: isScrolled ? 0 : 30, opacity: isScrolled ? 0 : 1 }}
-        transition={{ duration: 0.3 }}
-        className="bg-[#4EB18D] text-white text-xs text-center py-1 px-4 flex items-center justify-center relative overflow-hidden"
-      >
-        <span>
-          🔥 Special Offer: Save time trial today and enjoy 20% off for three
-          Plan! Don&apost miss out on this limited time offer.
-        </span>
-        <button className="absolute right-2 top-1/2 transform -translate-y-1/2">
-          <X size={14} />
-        </button>
-      </motion.div>
+      {!cancel && (
+        <motion.div
+          initial={{ height: 30, opacity: 1 }}
+          animate={{ height: isScrolled ? 0 : 30, opacity: isScrolled ? 0 : 1 }}
+          transition={{ duration: 0.3 }}
+          className="bg-[#4EB18D] text-white text-xs text-center py-1 px-4 flex items-center justify-center relative overflow-hidden"
+        >
+          <span>
+            🔥 Special Offer: Save time trial today and enjoy 20% off for three
+            Plan! Don&apost miss out on this limited time offer.
+          </span>
+          <button
+            onClick={() => setCancel(true)}
+            className="absolute right-2 top-1/2 transform -translate-y-1/2"
+          >
+            <X size={14} />
+          </button>
+        </motion.div>
+      )}
 
       {/* Header */}
       <motion.header
@@ -225,7 +237,7 @@ export default function Home() {
                 className="relative"
               >
                 <Image
-                  src="/placeholder.svg?height=600&width=500"
+                  src={Website}
                   alt="MaxPilot App"
                   width={500}
                   height={600}
@@ -363,14 +375,14 @@ export default function Home() {
                 className="relative rounded-lg overflow-hidden"
               >
                 <Image
-                  src="/placeholder.svg?height=300&width=500"
+                  src={DemoThumbnail}
                   alt="Demo Video Thumbnail"
                   width={500}
                   height={300}
                   className="w-full h-auto"
                 />
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer">
+                  <div className="w-16 h-16 -mt-5 -ml-6 bg-white rounded-full flex items-center justify-center shadow-lg cursor-pointer">
                     <Play className="text-[#4EB18D] ml-1" size={24} />
                   </div>
                 </div>
@@ -422,7 +434,7 @@ export default function Home() {
                 className="lg:col-span-2"
               >
                 <Image
-                  src="/placeholder.svg?height=400&width=400"
+                  src={Frame}
                   alt="Healthcare Worker with Patient"
                   width={400}
                   height={400}
@@ -543,7 +555,7 @@ export default function Home() {
                     className="flex items-center bg-black text-white rounded-md px-4 py-2"
                   >
                     <Image
-                      src="/placeholder.svg?height=20&width=20"
+                      src={GooglePlay}
                       alt="Google Play"
                       width={20}
                       height={20}
@@ -559,7 +571,7 @@ export default function Home() {
                     className="flex items-center bg-black text-white rounded-md px-4 py-2"
                   >
                     <Image
-                      src="/placeholder.svg?height=20&width=20"
+                      src={AppStore}
                       alt="App Store"
                       width={20}
                       height={20}
@@ -581,7 +593,7 @@ export default function Home() {
                 className="relative"
               >
                 <Image
-                  src="/placeholder.svg?height=500&width=500"
+                  src={Access}
                   alt="MaxPilot on Desktop and Mobile"
                   width={500}
                   height={500}
@@ -604,103 +616,7 @@ export default function Home() {
         </section>
 
         {/* Pricing Section */}
-        <section id="pricing" className="py-16 bg-[#4EB18D]">
-          <div className="container mx-auto px-4 text-center">
-            <motion.h2
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6 }}
-              viewport={{ once: true }}
-              className="text-3xl font-bold text-white mb-4"
-            >
-              Start Your Free Trial
-            </motion.h2>
-            <motion.p
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.1 }}
-              viewport={{ once: true }}
-              className="text-white/90 mb-12 max-w-2xl mx-auto text-sm"
-            >
-              Want to learn more about MaxPilot? Enjoy a free 7-day trial and
-              explore all the features. Terms and conditions applied*
-            </motion.p>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-              {[
-                {
-                  title: "BASIC",
-                  price: "$9",
-                  description:
-                    "Includes all the features necessary for rostering, and easily submit progress notes and track team availability.",
-                  popular: false,
-                },
-                {
-                  title: "PROFESSIONAL",
-                  price: "$15",
-                  description:
-                    "Includes client management, check-ups tracking, and invoice generation with NDIS payment integration.",
-                  popular: false,
-                },
-                {
-                  title: "PREMIUM",
-                  price: "$25",
-                  description:
-                    "Unlock all the features, including custom programs, custom forms, and advanced invoice management.",
-                  popular: true,
-                },
-              ].map((plan, index) => (
-                <motion.div
-                  key={index}
-                  initial={{ opacity: 0, y: 30 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.6, delay: 0.2 + 0.1 * index }}
-                  viewport={{ once: true }}
-                  className={`bg-white rounded-lg overflow-hidden shadow-lg relative ${
-                    plan.popular ? "transform -translate-y-2" : ""
-                  }`}
-                >
-                  {plan.popular && (
-                    <div className="absolute top-0 right-0">
-                      <div className="bg-yellow-400 text-xs font-bold px-3 py-1 transform rotate-45 translate-x-6 -translate-y-1">
-                        POPULAR
-                      </div>
-                    </div>
-                  )}
-                  <div className="p-6">
-                    <h3 className="text-xl font-bold mb-4">{plan.title}</h3>
-                    <div className="mb-4">
-                      <span className="text-3xl font-bold">{plan.price}</span>
-                      <span className="text-gray-500 text-sm">
-                        per staff/month
-                      </span>
-                    </div>
-                    <p className="text-gray-600 text-sm mb-6">
-                      {plan.description}
-                    </p>
-
-                    <Tabs defaultValue="monthly" className="w-full mb-6">
-                      <TabsList className="grid w-full grid-cols-2">
-                        <TabsTrigger value="monthly">Monthly</TabsTrigger>
-                        <TabsTrigger value="annually">Annually</TabsTrigger>
-                      </TabsList>
-                    </Tabs>
-
-                    <Button
-                      className={`w-full ${
-                        plan.popular
-                          ? "bg-[#4EB18D] hover:bg-[#4EB18D]/90"
-                          : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                      }`}
-                    >
-                      {plan.popular ? "Get Started" : "Choose Plan"}
-                    </Button>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
+        <Pricing />
       </main>
 
       {/* Footer */}
@@ -709,7 +625,7 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-8">
             <div>
               <Image
-                src="/placeholder.svg?height=40&width=120"
+                src={Logo}
                 alt="MaxPilot Logo"
                 width={120}
                 height={40}
@@ -852,7 +768,7 @@ export default function Home() {
                 className="flex items-center bg-black text-white rounded-md px-3 py-1.5"
               >
                 <Image
-                  src="/placeholder.svg?height=16&width=16"
+                  src={GooglePlay}
                   alt="Google Play"
                   width={16}
                   height={16}
@@ -868,7 +784,7 @@ export default function Home() {
                 className="flex items-center bg-black text-white rounded-md px-3 py-1.5"
               >
                 <Image
-                  src="/placeholder.svg?height=16&width=16"
+                  src={AppStore}
                   alt="App Store"
                   width={16}
                   height={16}

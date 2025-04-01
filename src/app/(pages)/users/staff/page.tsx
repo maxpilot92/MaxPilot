@@ -264,11 +264,11 @@ export default function StaffListPage() {
                     {staff.personalDetails.fullName}
                   </TableCell>
                   <TableCell>{staff.personalDetails.gender}</TableCell>
-                  <TableCell>{staff.workDetails.role}</TableCell>
+                  <TableCell>{staff.workDetails?.role}</TableCell>
                   <TableCell>{staff.personalDetails.email}</TableCell>
                   <TableCell>{staff.personalDetails.phoneNumber}</TableCell>
                   <TableCell>{staff.personalDetails.address}</TableCell>
-                  <TableCell>{staff.workDetails.employmentType}</TableCell>
+                  <TableCell>{staff.workDetails?.employmentType}</TableCell>
                 </TableRow>
               ))
             )}

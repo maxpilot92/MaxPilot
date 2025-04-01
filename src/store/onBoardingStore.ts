@@ -8,6 +8,7 @@ interface OnBoardingState {
   managerEmail: string;
   accountType: string;
   role: string;
+  subRoles: string;
 }
 
 interface OnBoardingStore {
@@ -24,6 +25,7 @@ export const useOnBoardingStore = create<OnBoardingStore>((set) => ({
     managerEmail: "",
     accountType: "",
     role: "",
+    subRoles: "",
   },
   setOnBoardingStates: (newState) =>
     set((state) => ({

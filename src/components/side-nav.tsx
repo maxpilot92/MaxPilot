@@ -33,9 +33,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar";
 import Logo from "@/../public/logo.svg";
-import axios from "axios";
-import { useUser } from "@clerk/nextjs";
-import { getStripe } from "@/lib/stripe/client";
+import { BASE_URL } from "@/utils/domain";
 
 const menuItems = [
   {
@@ -44,17 +42,17 @@ const menuItems = [
       {
         title: "Dashboard",
         icon: LayoutDashboard,
-        url: "/dashboard",
+        url: `${BASE_URL}/users/dashboard`,
       },
       {
         title: "Schedule",
         icon: Calendar,
-        url: "http://localhost:3000/users/areas",
+        url: `${BASE_URL}/users/areas`,
       },
       {
         title: "Worklog",
         icon: ClipboardList,
-        url: "/timesheet",
+        url: `/timesheet`,
       },
     ],
   },
@@ -64,24 +62,24 @@ const menuItems = [
       {
         title: "Staff",
         icon: Users,
-        url: "/staff",
+        url: `/staff`,
         hasSubmenu: true,
         subMenuItems: [
           {
             title: "List",
-            url: "http://localhost:3000/users/staff",
+            url: `${BASE_URL}/users/staff`,
           },
           {
             title: "Teams",
-            url: "http://localhost:3000/users/staff/team",
+            url: `${BASE_URL}/users/staff/team`,
           },
           {
             title: "Archived",
-            url: "http://localhost:3000/users/staff/archived",
+            url: `${BASE_URL}/users/staff/archived`,
           },
           {
             title: "Documents",
-            url: "http://localhost:3000/users/staff/document",
+            url: `${BASE_URL}/users/staff/document`,
           },
         ],
       },
@@ -94,15 +92,15 @@ const menuItems = [
         subMenuItems: [
           {
             title: "List",
-            url: "http://localhost:3000/users/client",
+            url: `${BASE_URL}/users/client`,
           },
           {
             title: "Archived",
-            url: "http://localhost:3000/users/client/archived",
+            url: `${BASE_URL}/users/client/archived`,
           },
           {
             title: "Documents",
-            url: "http://localhost:3000/users/client/document",
+            url: `${BASE_URL}/users/client/document`,
           },
         ],
       },
@@ -120,7 +118,7 @@ const menuItems = [
       {
         title: "Forms",
         icon: FormInput,
-        url: "/users/forms",
+        url: `/users/forms`,
         hasSubmenu: true,
       },
     ],
@@ -145,31 +143,6 @@ const menuItems = [
 ];
 
 export function SideNav({ children }: { children: React.ReactNode }) {
-  const { user } = useUser();
-  const handleSubscription = async () => {
-    try {
-      // 1. Call your API to create the checkout session
-      const response = await axios.post("/api/subscriptions/create", {
-        price: "price_1R8bng09Pi8IX7t9oMrZxw9h", // Use priceId instead of price
-        customerEmail: user?.emailAddresses[0].emailAddress,
-      });
-
-      // 2. Get the session ID from response
-      const { sessionId } = response.data;
-
-      // 3. Redirect to Stripe Checkout
-      const stripe = await getStripe(); // Import getStripe from '@/lib/stripe/client'
-      const { error } = await stripe!.redirectToCheckout({ sessionId });
-
-      if (error) {
-        console.error("Stripe redirect error:", error);
-        alert("Failed to redirect to payment page");
-      }
-    } catch (error) {
-      console.error("Subscription error:", error);
-      alert("Failed to start subscription process");
-    }
-  };
   return (
     <SidebarProvider>
       <Sidebar className="border-r bg-white">
@@ -196,9 +169,9 @@ export function SideNav({ children }: { children: React.ReactNode }) {
             </div>
           ))}
 
-          <div
+          <Link
+            href="/pricing"
             className="mt-4 mx-2 mb-4 rounded-md bg-green-50 p-3 text-center cursor-pointer"
-            onClick={handleSubscription}
           >
             <div className="flex flex-col items-center">
               <div className="flex items-center text-green-500 font-medium mb-1">
@@ -223,7 +196,7 @@ export function SideNav({ children }: { children: React.ReactNode }) {
                 <span className="font-medium">5-days</span>
               </div>
             </div>
-          </div>
+          </Link>
 
           <SidebarMenu className="mt-4">
             <SidebarMenuItem className="text-[#726C6C]">

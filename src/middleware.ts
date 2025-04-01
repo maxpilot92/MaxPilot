@@ -1,24 +1,20 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { BASE_URL } from "./utils/domain";
 
 const isProtectedRoute = createRouteMatcher(["/users(.*)"]);
 const authRoute = createRouteMatcher(["/sign-up", "/sign-in"]);
 
 export default clerkMiddleware(async (auth, req) => {
   const { userId } = await auth();
-  const DOMAIN = process.env.DOMAIN;
   if (isProtectedRoute(req)) {
     if (!userId) {
-      return NextResponse.redirect(
-        `${DOMAIN ? DOMAIN : "http://localhost:3000"}/sign-in`
-      );
+      return NextResponse.redirect(`${BASE_URL}/sign-in`);
     }
   }
 
   if (authRoute(req) && userId) {
-    return NextResponse.redirect(
-      `${DOMAIN ? DOMAIN : "http://localhost:3000"}/dashboard`
-    );
+    return NextResponse.redirect(`${BASE_URL}/users/dashboard`);
   }
 
   return NextResponse.next();

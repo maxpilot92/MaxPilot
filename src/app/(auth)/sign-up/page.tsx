@@ -115,8 +115,6 @@ export default function SignupPage() {
     setIsLoading(true);
 
     try {
-      console.log("Starting sign up process with Clerk SDK");
-
       // First create the user with the Clerk SDK
       await signUp.create({
         emailAddress: email,
@@ -184,7 +182,7 @@ export default function SignupPage() {
 
       // Store the additional user data via your API
       // Note: This no longer creates another Clerk user, just stores metadata
-      await axios.post("/api/sign-up", {
+      const response = await axios.post("/api/sign-up", {
         email,
         fullName,
         companyName,
@@ -192,14 +190,27 @@ export default function SignupPage() {
         role,
         managerEmail,
       });
+      console.log("User data stored in the database", response.data);
 
       if (completeSignUp.status === "complete") {
         // Redirect to dashboard after successful sign up
+
+        const payload = {
+          personalDetails: {
+            email,
+            fullName,
+          },
+          subRoles: accountType === "business" ? "Admin" : "staff",
+          role,
+          companyId: response.data.data.companyId,
+        };
+
+        await axios.post("/api/user/user-details", payload);
         toast({
           title: "Account created successfully",
           description: "Welcome to MaxPilot!",
         });
-        router.push("/users/staff");
+        router.push("/users/dashboard");
       }
     } catch (error) {
       console.error("Verification failed", error);

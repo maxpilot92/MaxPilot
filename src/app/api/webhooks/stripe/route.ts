@@ -10,15 +10,11 @@ export const config = {
 };
 
 export async function POST(request: Request) {
-  console.log("Received webhook request");
-
   // Get raw request body
   const body = await request.text();
-  console.log("Request Body: ", body); // Log the raw body for debugging
 
   // Extract the Stripe signature
   const signature = request.headers.get("stripe-signature")!;
-  console.log("Stripe Signature: ", signature); // Debug the signature
 
   let event: Stripe.Event;
 
@@ -37,18 +33,14 @@ export async function POST(request: Request) {
     );
   }
 
-  console.log(`Received event type: ${event.type}`);
-
   // Handle the relevant event types
   switch (event.type) {
     case "checkout.session.completed":
-      console.log("Handling checkout session completed event");
       const checkoutSession = event.data.object as Stripe.Checkout.Session;
       await handleCheckoutSessionCompleted(checkoutSession);
       break;
 
     case "customer.subscription.updated":
-      console.log("Handling subscription updated event");
       const subscription = event.data.object as Stripe.Subscription;
       await handleSubscriptionUpdated(subscription);
       break;

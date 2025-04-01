@@ -43,7 +43,8 @@ export default function OnboardingPage() {
         fullName: formData.fullName,
         companyName: formData.companyName,
         accountType: formData.accountType,
-        role: "Admin",
+        role: "staff",
+        subRoles: "Admin",
         managerEmail: formData.managerEmail,
       });
       console.log("Sign up response:", response.data);
@@ -55,8 +56,9 @@ export default function OnboardingPage() {
         companyId: response.data.data.public_metadata.companyId,
         email: user.emailAddresses[0].emailAddress,
         role: response.data.data.public_metadata.role,
+        subRoles: "Admin",
       });
-      router.push("/dashboard");
+      router.push("/users/dashboard");
     } catch (error) {
       console.error("Error updating user metadata:", error);
       setIsSubmitting(false);

@@ -15,8 +15,6 @@ export async function POST(request: NextRequest) {
         { status: 400 }
       );
     }
-    console.log("data", data);
-
     // Find the user by email in Clerk
     const findUserResponse = await axios.get(
       `https://api.clerk.com/v1/users?email_address=${encodeURIComponent(
@@ -30,8 +28,6 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    console.log("finduserresponse", findUserResponse);
-
     if (findUserResponse.status !== 200) {
       console.error("Error finding user:", findUserResponse.data);
       return NextResponse.json(
@@ -44,7 +40,6 @@ export async function POST(request: NextRequest) {
     }
 
     const users = findUserResponse.data;
-    console.log("user", users);
 
     if (!users || users.length === 0) {
       return NextResponse.json(
@@ -57,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     const userId = users[0].id;
-
+    const companyId = uuidv4();
     // Update the user's metadata using axios
     const updateResponse = await axios.patch(
       `https://api.clerk.com/v1/users/${userId}/metadata`,
@@ -68,7 +63,7 @@ export async function POST(request: NextRequest) {
           accountType,
           role,
           managerEmail: managerEmail || null,
-          companyId: uuidv4(),
+          companyId,
         },
       },
       {
@@ -78,8 +73,6 @@ export async function POST(request: NextRequest) {
         },
       }
     );
-
-    console.log("updatedUserMetadata", updateResponse.data);
 
     // const client = await clerkClient();
 
@@ -98,12 +91,17 @@ export async function POST(request: NextRequest) {
 
     //   console.log("updatedUser", updatedUser.publicMetadata);
     // }
+    const payload = {
+      ...updateResponse.data,
+      companyId,
+    };
+    console.log("payload", payload);
     return NextResponse.json(
       {
         success: true,
         message: "User metadata updated successfully",
         // data: updatedUser,
-        data: updateResponse.data,
+        data: payload,
       },
       { status: 200 }
     );
