@@ -55,10 +55,10 @@ export function EditWorkDetailsDialog({
   const form = useForm<WorkDetailsFormValues>({
     resolver: zodResolver(workDetailsSchema),
     defaultValues: {
-      worksAt: data.worksAt,
-      hiredOn: data.hiredOn,
-      role: data.role,
-      employmentType: data.employmentType,
+      worksAt: data?.worksAt,
+      hiredOn: data?.hiredOn,
+      role: data?.role,
+      employmentType: data?.employmentType,
     },
   });
 

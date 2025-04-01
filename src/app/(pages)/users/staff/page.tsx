@@ -100,11 +100,6 @@ export default function StaffListPage() {
       setAllStaffData(response.data.data);
     } catch (error) {
       console.error("Error fetching staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch staff data. Please try again.",
-        variant: "destructive",
-      });
       setAllStaffData([]);
     } finally {
       setLoading(false);

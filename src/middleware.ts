@@ -1,4 +1,8 @@
-import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
+import {
+  clerkClient,
+  clerkMiddleware,
+  createRouteMatcher,
+} from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { BASE_URL } from "./utils/domain";
 
@@ -17,7 +21,17 @@ export default clerkMiddleware(async (auth, req) => {
     return NextResponse.redirect(`${BASE_URL}/users/dashboard`);
   }
 
-  return NextResponse.next();
+  const client = await clerkClient();
+
+  const user = client.users.getUser(userId!);
+
+  const companyId = (await user).publicMetadata.companyId;
+
+  const response = NextResponse.next();
+
+  response.headers.set("company-id", companyId as string);
+
+  return response;
 });
 
 export const config = {

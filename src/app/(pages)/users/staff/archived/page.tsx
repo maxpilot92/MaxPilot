@@ -235,11 +235,11 @@ export default function ArchivedStaffPage() {
               displayedStaffData.map((staff) => (
                 <TableRow key={staff.id}>
                   <TableCell>{staff.personalDetails.fullName}</TableCell>
-                  <TableCell>{staff.workDetails.role}</TableCell>
+                  <TableCell>{staff.workDetails?.role}</TableCell>
                   <TableCell>{staff.personalDetails.email}</TableCell>
                   <TableCell>{staff.personalDetails.phoneNumber}</TableCell>
                   <TableCell>{staff.personalDetails.address}</TableCell>
-                  <TableCell>{staff.workDetails.employmentType}</TableCell>
+                  <TableCell>{staff.workDetails?.employmentType}</TableCell>
                   <TableCell>
                     <Button
                       variant="secondary"

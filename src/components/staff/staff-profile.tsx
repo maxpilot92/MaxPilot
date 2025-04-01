@@ -226,7 +226,7 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
                 Active
               </Badge>
             </div>
-            <p className="text-muted-foreground">{data.workDetails.role}</p>
+            <p className="text-muted-foreground">{data.workDetails?.role}</p>
           </div>
         </div>
 
@@ -295,19 +295,19 @@ export function StaffProfile({ data: initialData }: { data: StaffData }) {
               <div>
                 <h4 className="text-sm font-medium mb-1">Works At</h4>
                 <p className="text-muted-foreground">
-                  {data.workDetails.worksAt}
+                  {data.workDetails?.worksAt}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Hired On</h4>
                 <p className="text-muted-foreground">
-                  {data.workDetails.hiredOn}
+                  {data.workDetails?.hiredOn}
                 </p>
               </div>
               <div>
                 <h4 className="text-sm font-medium mb-1">Employment Type</h4>
                 <p className="text-muted-foreground">
-                  {data.workDetails.employmentType}
+                  {data.workDetails?.employmentType}
                 </p>
               </div>
               <div>

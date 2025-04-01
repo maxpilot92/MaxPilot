@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/stripe";
 import { auth } from "@clerk/nextjs/server";
 import prisma from "@/lib/prisma";
+import { BASE_URL } from "@/utils/domain";
 
 export async function POST(request: Request) {
   const { userId } = await auth();
@@ -38,8 +39,8 @@ export async function POST(request: Request) {
       mode: "subscription",
       //   success_url: `${process.env.DOMAIN}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       //   cancel_url: `${process.env.DOMAIN}/pricing`,
-      success_url: `http://localhost:3000/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `http://localhost:3000/pricing`,
+      success_url: `${BASE_URL}/dashboard`,
+      cancel_url: `${BASE_URL}/pricing`,
       subscription_data: {
         metadata: {
           userId,

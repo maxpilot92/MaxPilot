@@ -14,7 +14,14 @@ type Role = RoleStatus;
 export async function GET(request: Request): Promise<NextResponse> {
   try {
     const { searchParams } = new URL(request.url);
+    const companyId = request.headers.get("company-id");
 
+    if (!companyId) {
+      return NextResponse.json(
+        { status: "error", message: "Company ID is required" },
+        { status: 400 }
+      );
+    }
     const employmentType = searchParams.get(
       "employmentType"
     ) as EmploymentType | null;
@@ -32,6 +39,7 @@ export async function GET(request: Request): Promise<NextResponse> {
     // Build the where clause for one-to-one relation with proper team relation handling
     const whereClause: Prisma.UserWhereInput = {
       archived: true,
+      companyId,
       role: userRole,
     };
 

@@ -149,7 +149,8 @@ function getSubscriptionExpiryDate(
 export async function POST(request: NextRequest) {
   try {
     const data: CreateUserInput = await request.json();
-    console.log(data, "At post");
+    const companyId = request.headers.get("company-id");
+
     if (!(data.subRoles === "Admin")) {
       // Validate input data
       validatePersonalDetails(data.personalDetails);
@@ -158,7 +159,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!data.companyId) {
+    if (!companyId) {
       return NextResponse.json(
         { error: "Company ID is required" },
         { status: 400 }
@@ -225,7 +226,7 @@ export async function POST(request: NextRequest) {
 
       const newUser = await tx.user.create({
         data: {
-          companyId: data.companyId,
+          companyId,
           role: data.subRoles || data.workDetails ? "staff" : "client",
           subRoles: data.subRoles,
           personalDetailsId: personalDetails.id,
@@ -276,7 +277,7 @@ export async function GET(request: NextRequest) {
     const role = searchParams.get("role");
     const employmentType = searchParams.get("employmentType");
     const teamId = searchParams.get("teamId");
-    const companyId = searchParams.get("companyId");
+    const companyId = request.headers.get("company-id");
 
     if (!companyId) {
       return NextResponse.json(
@@ -313,7 +314,6 @@ export async function GET(request: NextRequest) {
 
     // Calculate skip value for pagination
     const skip = (page - 1) * limit;
-    console.log("company id", companyId);
     // Build where clause
     const where: Prisma.UserWhereInput = {
       archived: false,
@@ -342,7 +342,6 @@ export async function GET(request: NextRequest) {
         },
       }),
     };
-    console.log("where", where);
     // Get users and total count
     const [users, total] = await Promise.all([
       prisma.user.findMany({

@@ -11,9 +11,18 @@ interface BodyData {
   role: string;
 }
 
+// POST - Archive or unarchive staff members
 export async function POST(request: Request) {
   try {
     const { operation, role } = (await request.json()) as BodyData;
+    const companyId = request.headers.get("company-id");
+
+    if (!companyId) {
+      return NextResponse.json(
+        { status: "error", message: "Company ID is required" },
+        { status: 400 }
+      );
+    }
 
     // Determine the current and target states based on operation
     const currentState = operation === "archive" ? false : true;
@@ -23,7 +32,8 @@ export async function POST(request: Request) {
       // Get all staff in current state (excluding admins for archive operation)
       const staffToUpdate = await tx.user.findMany({
         where: {
-          role: {
+          companyId,
+          subRoles: {
             not: "Admin",
             contains: role,
           },
@@ -43,9 +53,6 @@ export async function POST(request: Request) {
           } staff members found to ${operation}`,
         };
       }
-
-      const user = staffToUpdate.map((user) => user.role);
-      console.log(user);
 
       // Update all matching staff
       const updateResult = await tx.user.updateMany({

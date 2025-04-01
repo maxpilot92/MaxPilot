@@ -8,6 +8,14 @@ export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
     const { name, staffIds } = body;
+    const companyId = req.headers.get("company-id");
+
+    if (!companyId) {
+      return NextResponse.json(
+        { success: false, error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
 
     // Validate team name
     if (!name || typeof name !== "string") {
@@ -52,6 +60,7 @@ export async function POST(req: NextRequest) {
     // Create the new team and associate work details
     const newTeam = await prisma.team.create({
       data: {
+        companyId,
         name,
         workDetails: {
           connect: workDetailsIds
@@ -112,15 +121,26 @@ export async function GET(request: NextRequest) {
   try {
     const url = new URL(request.url);
     const nameFilter = url.searchParams.get("name");
+    const companyId = request.headers.get("company-id");
 
-    const where: { name?: { contains: string; mode: "insensitive" } } = {};
+    if (!companyId) {
+      return NextResponse.json(
+        { success: false, error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
+
+    const where: {
+      name?: { contains: string; mode: "insensitive" };
+      companyId?: string;
+    } = {};
     if (nameFilter) {
       where.name = {
         contains: nameFilter,
         mode: "insensitive",
       };
     }
-
+    where.companyId = companyId;
     // Fetch and optimize data
     const teams = await prisma.team.findMany({
       where,
