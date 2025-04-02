@@ -156,7 +156,7 @@ export default function ClientProfilePage() {
     if (!clientData) return;
     console.log("Client data:", clientData);
     try {
-      const response = await axios.put(
+      await axios.put(
         `/api/user/staff/manage-archive/${params.id}`,
         clientData
       );
