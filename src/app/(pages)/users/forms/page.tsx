@@ -5,6 +5,7 @@ import { Search, Plus, ChevronRight, ChevronLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
+import { BASE_URL } from "@/utils/domain";
 
 const FORM_TEMPLATES = [
   "Progress Report",
@@ -71,7 +72,7 @@ export default function NewFormPage() {
           </p>
           <Button
             className="bg-teal-500 hover:bg-teal-600"
-            onClick={() => router.push("/forms/builder")}
+            onClick={() => router.push(`${BASE_URL}/users/forms/builder`)}
           >
             <Plus className="h-4 w-4 mr-2" />
             Create Form

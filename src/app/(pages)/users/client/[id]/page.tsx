@@ -160,7 +160,7 @@ export default function ClientProfilePage() {
         `/api/user/staff/manage-archive/${params.id}`,
         clientData
       );
-      console.log(response);
+      setShowArchiveDialog(false);
       toast({
         title: "Success",
         description: "Client archived successfully",

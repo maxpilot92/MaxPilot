@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/sidebar";
 import Logo from "@/../public/logo.svg";
 import { BASE_URL } from "@/utils/domain";
+import { useUser } from "@clerk/nextjs";
 
 const menuItems = [
   {
@@ -118,8 +119,7 @@ const menuItems = [
       {
         title: "Forms",
         icon: FormInput,
-        url: `/users/forms`,
-        hasSubmenu: true,
+        url: `${BASE_URL}/users/forms`,
       },
     ],
   },
@@ -143,6 +143,15 @@ const menuItems = [
 ];
 
 export function SideNav({ children }: { children: React.ReactNode }) {
+  const [userId, setUserId] = React.useState("");
+  const { user } = useUser();
+
+  React.useEffect(() => {
+    if (user) {
+      setUserId(user.id);
+    }
+  }, [user]);
+
   return (
     <SidebarProvider>
       <Sidebar className="border-r bg-white">
@@ -201,7 +210,7 @@ export function SideNav({ children }: { children: React.ReactNode }) {
           <SidebarMenu className="mt-4">
             <SidebarMenuItem className="text-[#726C6C]">
               <SidebarMenuButton asChild className="gap-2">
-                <Link href="/settings">
+                <Link href={`${BASE_URL}/users/account/${userId}`}>
                   <Settings className="h-5 w-5" />
                   <span>Settings</span>
                 </Link>
@@ -250,7 +259,7 @@ function MenuItem({ item }: { item: MenuItemProps }) {
   const Icon = item.icon;
 
   const activeStyles = item.isActive
-    ? "bg-emerald-500 text-white hover:bg-emerald-600"
+    ? "bg-emerald-500 text-white"
     : "text-[#726C6C] hover:bg-gray-100";
 
   if (!item.hasSubmenu) {

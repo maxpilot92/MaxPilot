@@ -23,15 +23,17 @@ export default clerkMiddleware(async (auth, req) => {
 
   const client = await clerkClient();
 
-  const user = client.users.getUser(userId!);
+  if (userId) {
+    const user = client.users.getUser(userId!);
 
-  const companyId = (await user).publicMetadata.companyId;
+    const companyId = (await user).publicMetadata.companyId;
 
-  const response = NextResponse.next();
+    const response = NextResponse.next();
 
-  response.headers.set("company-id", companyId as string);
+    response.headers.set("company-id", companyId as string);
 
-  return response;
+    return response;
+  }
 });
 
 export const config = {

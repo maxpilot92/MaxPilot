@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
         ...data,
         needToKnowInfo: data.needToKnowInfo,
         usefulInfo: data.usefulInfo,
-        Staff: {
+        user: {
           connect: {
             id: userId,
           },

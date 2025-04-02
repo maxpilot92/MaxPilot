@@ -68,7 +68,7 @@ export function AddDocumentDialog({
 
       // save to database
 
-      await axios.post("/api/user/client/document", {
+      await axios.post("/api/user/document", {
         role: "client",
         fileName,
         url,

@@ -28,9 +28,11 @@ export async function POST(request: NextRequest) {
     const isAdmin = await prisma.user.findUnique({
       where: {
         id: userId,
-        role: "Admin",
+        subRoles: "Admin",
       },
     });
+
+    console.log(isAdmin);
 
     if (!isAdmin) {
       return NextResponse.json(
