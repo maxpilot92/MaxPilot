@@ -188,64 +188,70 @@ export async function POST(request: NextRequest) {
 
     // Create user with all related data in a transaction
 
-    const user = await prisma.$transaction(async (tx) => {
-      // Create personal details
-      const personalDetails = await tx.personalDetails.create({
-        data: {
-          ...data.personalDetails,
-          dob: data.personalDetails.dob
-            ? new Date(data.personalDetails.dob)
-            : null,
-        },
-      });
-
-      // Create work details if provided
-      let workDetails;
-      if (data.workDetails) {
-        workDetails = await tx.workDetails.create({
+    const user = await prisma.$transaction(
+      async (tx) => {
+        // Create personal details
+        const personalDetails = await tx.personalDetails.create({
           data: {
-            ...data.workDetails,
-            hiredOn: data.workDetails.hiredOn
-              ? new Date(data.workDetails.hiredOn)
+            ...data.personalDetails,
+            dob: data.personalDetails.dob
+              ? new Date(data.personalDetails.dob)
               : null,
           },
         });
+
+        // Create work details if provided
+        let workDetails;
+        if (data.workDetails) {
+          workDetails = await tx.workDetails.create({
+            data: {
+              ...data.workDetails,
+              hiredOn: data.workDetails.hiredOn
+                ? new Date(data.workDetails.hiredOn)
+                : null,
+            },
+          });
+        }
+
+        let subscriptionEnd;
+
+        switch (data.subscriptionPeriod) {
+          case "Monthly":
+            subscriptionEnd = getSubscriptionExpiryDate(new Date(), 30);
+            break;
+          case "Annually":
+            subscriptionEnd = getSubscriptionExpiryDate(new Date(), 365);
+            break;
+          case "Free_Trial":
+            subscriptionEnd = getSubscriptionExpiryDate(new Date(), 14);
+            break;
+          default:
+            throw new Error("Invalid subscription period");
+        }
+
+        const newUser = await tx.user.create({
+          data: {
+            companyId,
+            role: data.subRoles || data.workDetails ? "staff" : "client",
+            subRoles: data.subRoles,
+            personalDetailsId: personalDetails.id,
+            workDetailsId: workDetails?.id,
+            subscriptionEnd,
+          },
+          include: {
+            personalDetails: true,
+            workDetails: true,
+            publicInformation: true,
+          },
+        });
+
+        return newUser;
+      },
+      {
+        maxWait: 20_000, // Maximum time to wait for a transaction
+        timeout: 25_000, // Maximum time for entire transaction
       }
-
-      let subscriptionEnd;
-
-      switch (data.subscriptionPeriod) {
-        case "Monthly":
-          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 30);
-          break;
-        case "Annually":
-          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 365);
-          break;
-        case "Free_Trial":
-          subscriptionEnd = getSubscriptionExpiryDate(new Date(), 14);
-          break;
-        default:
-          throw new Error("Invalid subscription period");
-      }
-
-      const newUser = await tx.user.create({
-        data: {
-          companyId,
-          role: data.subRoles || data.workDetails ? "staff" : "client",
-          subRoles: data.subRoles,
-          personalDetailsId: personalDetails.id,
-          workDetailsId: workDetails?.id,
-          subscriptionEnd,
-        },
-        include: {
-          personalDetails: true,
-          workDetails: true,
-          publicInformation: true,
-        },
-      });
-
-      return newUser;
-    });
+    );
 
     await redis.set(`${data.role}:${user.id}`, JSON.stringify(user));
 
