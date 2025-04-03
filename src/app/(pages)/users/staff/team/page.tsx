@@ -64,7 +64,7 @@ export default function TeamsPage() {
       });
 
       const response = await axios.get(`/api/user/staff/team?${params}`);
-      console.log(response);
+
       if (response.data && response.data.data) {
         setTeams(response.data.data || []);
         setPagination(
@@ -81,7 +81,7 @@ export default function TeamsPage() {
         throw new Error("Invalid response format");
       }
     } catch (error) {
-      console.error("Error fetching teams:", error);
+      console.log("Error fetching teams:", error);
 
       setTeams([]);
       setPagination({

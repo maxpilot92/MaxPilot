@@ -39,7 +39,7 @@ export async function POST(request: Request) {
       mode: "subscription",
       //   success_url: `${process.env.DOMAIN}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
       //   cancel_url: `${process.env.DOMAIN}/pricing`,
-      success_url: `${BASE_URL}/dashboard`,
+      success_url: `${BASE_URL}/users/dashboard`,
       cancel_url: `${BASE_URL}/pricing`,
       subscription_data: {
         metadata: {

@@ -25,11 +25,11 @@ export default function Pricing() {
       const { error } = await stripe!.redirectToCheckout({ sessionId });
 
       if (error) {
-        console.error("Stripe redirect error:", error);
+        console.log("Stripe redirect error:", error);
         alert("Failed to redirect to payment page");
       }
     } catch (error) {
-      console.error("Subscription error:", error);
+      console.log("Subscription error:", error);
       alert("Failed to start subscription process");
     }
   };

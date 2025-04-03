@@ -101,12 +101,7 @@ export default function TeamEditPage() {
       }
       return response.data.data;
     } catch (error) {
-      console.error("Error fetching staff:", error);
-      toast({
-        title: "Error",
-        description: "Failed to fetch staff data. Please try again.",
-        variant: "destructive",
-      });
+      console.log("Error fetching staff:", error);
       return [];
     }
   }, []);
@@ -148,7 +143,7 @@ export default function TeamEditPage() {
         setAvailableStaff(availableStaffData);
       }
     } catch (error) {
-      console.error("Error fetching team data:", error);
+      console.log("Error fetching team data:", error);
       toast({
         title: "Error",
         description: "Failed to fetch team data. Please try again.",
@@ -171,7 +166,7 @@ export default function TeamEditPage() {
         setTeamMembers([]); // Empty team members for new team
       }
     } catch (error) {
-      console.error("Error initializing data:", error);
+      console.log("Error initializing data:", error);
       toast({
         title: "Error",
         description: "Failed to initialize data. Please try again.",
@@ -275,7 +270,7 @@ export default function TeamEditPage() {
 
       router.push("/users/staff/team");
     } catch (error) {
-      console.error("Error saving team:", error);
+      console.log("Error saving team:", error);
       toast({
         title: "Error",
         description: `Failed to ${isEditMode ? "update" : "create"} team`,
