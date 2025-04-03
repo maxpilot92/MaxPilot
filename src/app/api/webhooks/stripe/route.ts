@@ -82,6 +82,50 @@ async function handleCheckoutSessionCompleted(
   }
 }
 
+// enum SubscriptionPeriod {
+//   Monthly,
+//   Annually,
+//   Free_Trail,
+// }
+
+// async function handleInvoicePaid(subscriptionId: string) {
+//   const {userId} = useAuth()
+//   const subscription = await stripe.subscriptions.retrieve(subscriptionId, {
+//     expand: ['items.data.price.product'],
+//   });
+
+//    // Extract subscription plan/type
+//    const priceId = subscription.items.data[0].price.id;
+//    const product = subscription.items.data[0].price.product;
+//    const productName = typeof product === "object" && "name" in product ? product.name : "Unknown Product"; // e.g., "Premium Plan"
+//    const billingInterval = subscription.items.data[0].price.recurring?.interval ?? "unknown"; // "month", "year", or "unknown"
+
+//    let subscriptionPeriod: SubscriptionPeriod;
+
+//    if (billingInterval === "unknown") {
+//      console.error("Error: billingInterval is unknown");
+//      return;
+//    } else if (billingInterval === "month" ) {
+//       subscriptionPeriod = SubscriptionPeriod.Monthly;
+
+//    } else if (billingInterval === "year") {
+//       subscriptionPeriod = SubscriptionPeriod.Annually;
+//    }
+
+//     // Update your database with the new subscription
+//     if (userId) {
+//       await prisma.user.update({
+//         where: { id: userId },
+//         data: {
+//           subscriptionEnd:,
+//           subscriptionPeriod: subscriptionPeriod as SubscriptionPeriod | undefined,
+//         },
+//       });
+//     } else {
+//       console.error("Error: userId is null or undefined");
+//     }
+// }
+
 async function handleSubscriptionUpdated(subscription: Stripe.Subscription) {
   const userId = subscription.metadata.userId;
 

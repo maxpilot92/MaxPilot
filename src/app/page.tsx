@@ -45,14 +45,14 @@ export default function Home() {
   }, []);
 
   return (
-    <div className="flex min-h-screen flex-col px-10">
+    <div className="flex min-h-screen flex-col ">
       {/* Promo Banner */}
       {!cancel && (
         <motion.div
           initial={{ height: 30, opacity: 1 }}
           animate={{ height: isScrolled ? 0 : 30, opacity: isScrolled ? 0 : 1 }}
           transition={{ duration: 0.3 }}
-          className="bg-[#4EB18D] text-white text-xs text-center py-1 px-4 flex items-center justify-center relative overflow-hidden"
+          className="bg-[#4EB18D] text-white text-xs text-center py-1 flex items-center justify-center relative overflow-hidden px-10"
         >
           <span>
             🔥 Special Offer: Save time trial today and enjoy 20% off for three
