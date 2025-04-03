@@ -2,24 +2,24 @@ import { ApiError, ApiErrors } from "@/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
 
 // Helper function to determine if the record is a staff or client
 async function getRecordType(id: string) {
   // Try to get data from Redis cache first
   try {
     // Check if data exists in Redis
-    const staffCacheData = await redis.get(`staff:${id}`);
-    if (staffCacheData) {
-      console.log("Staff data retrieved from cache");
-      return { type: "staff", record: JSON.parse(staffCacheData) };
-    }
+    // const staffCacheData = await redis.get(`staff:${id}`);
+    // if (staffCacheData) {
+    //   console.log("Staff data retrieved from cache");
+    //   return { type: "staff", record: JSON.parse(staffCacheData) };
+    // }
 
-    const clientCacheData = await redis.get(`client:${id}`);
-    if (clientCacheData) {
-      console.log("Client data retrieved from cache");
-      return { type: "client", record: JSON.parse(clientCacheData) };
-    }
+    // const clientCacheData = await redis.get(`client:${id}`);
+    // if (clientCacheData) {
+    //   console.log("Client data retrieved from cache");
+    //   return { type: "client", record: JSON.parse(clientCacheData) };
+    // }
 
     // If not in cache, query from database
     console.log("Data not found in cache, querying database...");
@@ -38,10 +38,10 @@ async function getRecordType(id: string) {
       },
     });
 
-    if (staff) {
-      await redis.set(`staff:${id}`, JSON.stringify(staff), "EX", 1200);
-      return { type: "staff", record: staff };
-    }
+    // if (staff) {
+    //   await redis.set(`staff:${id}`, JSON.stringify(staff), "EX", 1200);
+    //   return { type: "staff", record: staff };
+    // }
 
     // If not staff, check if it's a client
     const client = await prisma.user.findFirst({
@@ -56,10 +56,10 @@ async function getRecordType(id: string) {
       },
     });
 
-    if (client) {
-      await redis.set(`client:${id}`, JSON.stringify(client), "EX", 1200);
-      return { type: "client", record: client };
-    }
+    // if (client) {
+    //   await redis.set(`client:${id}`, JSON.stringify(client), "EX", 1200);
+    //   return { type: "client", record: client };
+    // }
 
     return { type: null, record: null };
   } catch (error) {
