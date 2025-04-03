@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
 
 export const config = {
   maxDuration: 30, // 30 seconds
@@ -253,7 +253,7 @@ export async function POST(request: NextRequest) {
       }
     );
 
-    await redis.set(`${data.role}:${user.id}`, JSON.stringify(user));
+    // await redis.set(`${data.role}:${user.id}`, JSON.stringify(user));
 
     console.log("User cached in Redis");
 
@@ -384,19 +384,19 @@ export async function GET(request: NextRequest) {
     console.log("Data fetched from database");
 
     // Store in Redis cache with expiration time of 20 minutes (1200 seconds)
-    try {
-      responseData.data.forEach(async (user) => {
-        await redis.set(
-          `${userRole}:${user.id}`,
-          JSON.stringify(user),
-          "EX",
-          1200
-        );
-      });
-    } catch (cacheError) {
-      console.error("Error storing data in cache:", cacheError);
-      // Continue with response even if caching fails
-    }
+    // try {
+    //   responseData.data.forEach(async (user) => {
+    //     await redis.set(
+    //       `${userRole}:${user.id}`,
+    //       JSON.stringify(user),
+    //       "EX",
+    //       1200
+    //     );
+    //   });
+    // } catch (cacheError) {
+    //   console.error("Error storing data in cache:", cacheError);
+    //   // Continue with response even if caching fails
+    // }
 
     return NextResponse.json(responseData);
   } catch (error) {
