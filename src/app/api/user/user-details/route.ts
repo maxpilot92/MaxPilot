@@ -3,6 +3,10 @@ import prisma from "@/lib/prisma";
 import { Prisma } from "@prisma/client";
 import redis from "@/lib/redis";
 
+export const config = {
+  maxDuration: 30, // 30 seconds
+};
+
 // Type definitions
 enum RoleStatus {
   Carer = "Carer",
