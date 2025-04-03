@@ -25,7 +25,7 @@ async function getRecordType(id: string) {
     console.log("Data not found in cache, querying database...");
 
     // First check if it's a staff member (not a client)
-    const staff = await prisma.user.findFirst({
+    await prisma.user.findFirst({
       where: {
         id,
         role: { not: "client" },
@@ -44,7 +44,7 @@ async function getRecordType(id: string) {
     // }
 
     // If not staff, check if it's a client
-    const client = await prisma.user.findFirst({
+    await prisma.user.findFirst({
       where: {
         id,
         role: "client",
