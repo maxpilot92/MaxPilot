@@ -59,7 +59,7 @@ export function AddNewHeadingDialog({
         setUsefulInfos(response.data.data || []);
       }
     } catch (error) {
-      console.error("Error fetching headings:", error);
+      console.log("Error fetching headings:", error);
     }
   };
   // Set the dialog type based on the title prop

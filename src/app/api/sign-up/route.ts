@@ -95,7 +95,7 @@ export async function POST(request: NextRequest) {
       ...updateResponse.data,
       companyId,
     };
-    console.log("payload", payload);
+
     return NextResponse.json(
       {
         success: true,

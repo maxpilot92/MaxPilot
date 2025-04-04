@@ -11,7 +11,13 @@ export async function POST(request: NextRequest) {
       usefulInfo,
       usefulInfoMandatory,
     } = data;
-
+    const companyId = request.headers.get("company-id");
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
     const userId = request.nextUrl.searchParams.get("userId");
 
     if (!userId) {
@@ -32,7 +38,7 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    console.log(isAdmin);
+    console.log("admin", isAdmin);
 
     if (!isAdmin) {
       return NextResponse.json(
@@ -43,6 +49,7 @@ export async function POST(request: NextRequest) {
 
     const heading = await prisma.heading.create({
       data: {
+        companyId,
         needToKnowInfo: needToKnowInfo ? needToKnowInfo : "",
         usefulInfo: usefulInfo ? usefulInfo : "",
         needToKnowMandatory: needToKnowMandatory ? needToKnowMandatory : false,
@@ -74,6 +81,13 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const headingType = request.nextUrl.searchParams.get("headingType");
+    const companyId = request.headers.get("company-id");
+    if (!companyId) {
+      return NextResponse.json(
+        { error: "Company ID is required" },
+        { status: 400 }
+      );
+    }
 
     const isNtk = headingType === "needToKnowInfo";
 
@@ -85,6 +99,9 @@ export async function GET(request: NextRequest) {
     }
 
     const headings = await prisma.heading.findMany({
+      where: {
+        companyId,
+      },
       select: {
         id: true,
         needToKnowInfo: isNtk,

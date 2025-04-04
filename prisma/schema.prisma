@@ -162,6 +162,7 @@ model Heading {
     createdAt           DateTime @default(now())
     updatedAt           DateTime @updatedAt
     adminId             String
+    companyId           String
 }
 
 // model Shift {

@@ -200,17 +200,20 @@ export default function SignupPage() {
             email,
             fullName,
           },
-          subRoles: accountType === "business" ? "Admin" : "staff",
+          subRoles: "Admin",
           role,
           companyId: response.data.data.companyId,
         };
 
-        await axios.post("/api/user/user-details", payload);
+        console.log("payload", payload);
+
+        const responseb = await axios.post("/api/user/user-details", payload);
+        console.log(responseb.data);
+        router.push("/users/dashboard");
         toast({
           title: "Account created successfully",
           description: "Welcome to MaxPilot!",
         });
-        router.push("/users/dashboard");
       }
     } catch (error) {
       console.error("Verification failed", error);

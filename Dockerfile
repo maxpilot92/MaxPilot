@@ -1,6 +1,10 @@
 # Stage 1: Base image for common setup
 FROM node:20 AS BASE
 
+# Install PostgreSQL client tools
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+
 # Set the working directory
 WORKDIR /usr/src/app
 
@@ -46,11 +50,9 @@ RUN npx prisma generate
 # Copy the rest of the application code
 COPY . .
 
-# Run Prisma migrations
-RUN npx prisma migrate deploy
-
 # Build the Next.js app
 RUN npm run build
 
 # Start the app in production mode
-CMD ["npm", "run", "start"]
+# Use a script or modify your start command to run migrations first
+CMD ["sh", "-c", "npx prisma migrate deploy && npm run start"]

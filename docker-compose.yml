@@ -4,7 +4,7 @@ services:
   maxpilot:
     build:
       context: .
-      target: production
+      target: development
       args:
         DATABASE_URL: postgresql://postgres:password@postgres:5432/test
     ports:
@@ -33,7 +33,7 @@ services:
       POSTGRES_PASSWORD: password
       POSTGRES_DB: test
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres:/var/lib/postgresql/data
     healthcheck:

@@ -149,8 +149,12 @@ function getSubscriptionExpiryDate(
 export async function POST(request: NextRequest) {
   try {
     const data: CreateUserInput = await request.json();
-    const companyId = request.headers.get("company-id");
+    let companyId = request.headers.get("company-id");
 
+    if (!companyId) {
+      companyId = data.companyId;
+    }
+    console.log(data, "At create user");
     if (!(data.subRoles === "Admin")) {
       // Validate input data
       validatePersonalDetails(data.personalDetails);
@@ -252,6 +256,7 @@ export async function POST(request: NextRequest) {
       { status: 201 }
     );
   } catch (error) {
+    console.error("Error creating user:", error);
     if (error instanceof Error) {
       console.error("Error details:", {
         message: error.message,
@@ -278,7 +283,6 @@ export async function GET(request: NextRequest) {
     const employmentType = searchParams.get("employmentType");
     const teamId = searchParams.get("teamId");
     const companyId = request.headers.get("company-id");
-
     if (!companyId) {
       return NextResponse.json(
         { error: "Company ID is required" },

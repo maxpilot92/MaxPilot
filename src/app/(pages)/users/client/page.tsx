@@ -264,7 +264,7 @@ export default function ClientListPage() {
                     className="cursor-pointer"
                     onClick={() => router.push(`/users/client/${client.id}`)}
                   >
-                    {client.personalDetails.fullName}
+                    {client.personalDetails?.fullName}
                   </TableCell>
                   <TableCell>{client.personalDetails.gender}</TableCell>
                   <TableCell>{client.personalDetails.clientStatus}</TableCell>
