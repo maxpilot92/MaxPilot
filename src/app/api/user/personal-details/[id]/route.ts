@@ -3,7 +3,7 @@ import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
 import { PersonalDetails } from "@prisma/client";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
 
 function validatePersonalDetails(data: PersonalDetails): void {
   const requiredFields = [
@@ -106,38 +106,38 @@ export async function PUT(request: NextRequest) {
         "Error updating personal details"
       );
     }
-    const personalDetails = {
-      ...updatedPersonalDetails,
-      dob: updatedPersonalDetails.dob
-        ? updatedPersonalDetails.dob.toISOString()
-        : null,
-    };
+    // const personalDetails = {
+    //   ...updatedPersonalDetails,
+    //   dob: updatedPersonalDetails.dob
+    //     ? updatedPersonalDetails.dob.toISOString()
+    //     : null,
+    // };
 
-    const workDetails = {
-      ...updatedPersonalDetails.user[0].workDetails,
-    };
+    // const workDetails = {
+    //   ...updatedPersonalDetails.user[0].workDetails,
+    // };
 
-    const publicInformation = {
-      ...updatedPersonalDetails.user[0].publicInformation,
-    };
+    // const publicInformation = {
+    //   ...updatedPersonalDetails.user[0].publicInformation,
+    // };
 
-    const staff = {
-      id: updatedPersonalDetails.user[0].id,
-      role: updatedPersonalDetails.user[0].role,
-      subRoles: updatedPersonalDetails.user[0].subRoles,
-      personalDetailsId: updatedPersonalDetails.user[0].personalDetailsId,
-      workDetailsId: updatedPersonalDetails.user[0].workDetailsId,
-      archived: updatedPersonalDetails.user[0].archived,
-      createdAt: updatedPersonalDetails.user[0].createdAt,
-      updatedAt: updatedPersonalDetails.user[0].updatedAt,
-      personalDetails,
-      workDetails,
-      publicInformation,
-    };
-    await redis.set(
-      `${updatedPersonalDetails.user[0].role}:${updatedPersonalDetails.user[0].id}`,
-      JSON.stringify(staff)
-    );
+    // const staff = {
+    //   id: updatedPersonalDetails.user[0].id,
+    //   role: updatedPersonalDetails.user[0].role,
+    //   subRoles: updatedPersonalDetails.user[0].subRoles,
+    //   personalDetailsId: updatedPersonalDetails.user[0].personalDetailsId,
+    //   workDetailsId: updatedPersonalDetails.user[0].workDetailsId,
+    //   archived: updatedPersonalDetails.user[0].archived,
+    //   createdAt: updatedPersonalDetails.user[0].createdAt,
+    //   updatedAt: updatedPersonalDetails.user[0].updatedAt,
+    //   personalDetails,
+    //   workDetails,
+    //   publicInformation,
+    // };
+    // await redis.set(
+    //   `${updatedPersonalDetails.user[0].role}:${updatedPersonalDetails.user[0].id}`,
+    //   JSON.stringify(staff)
+    // );
 
     console.log("Data updated in cache");
 

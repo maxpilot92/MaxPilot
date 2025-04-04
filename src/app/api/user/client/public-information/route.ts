@@ -1,5 +1,5 @@
 import prisma from "@/lib/prisma";
-import redis from "@/lib/redis";
+// import redis from "@/lib/redis";
 import { NextRequest, NextResponse } from "next/server";
 
 interface PublicInformation {
@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    await redis.del(`${role}: ${userId}`);
+    // await redis.del(`${role}: ${userId}`);
 
     return NextResponse.json(
       {
@@ -88,7 +88,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const data = await request.json();
-    const role = "client";
+    // const role = "client";
     const userId = request.nextUrl.searchParams.get("userId");
 
     // Handle case where userId is null
@@ -172,7 +172,7 @@ export async function PUT(request: NextRequest) {
         { status: 400 }
       );
     }
-    await redis.del(`${role}: ${userId}`);
+    // await redis.del(`${role}: ${userId}`);
 
     return NextResponse.json(
       {
@@ -193,7 +193,7 @@ export async function PUT(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     const userId = request.nextUrl.searchParams.get("userId");
-    const role = "client";
+    // const role = "client";
 
     if (!userId) {
       return NextResponse.json(
@@ -203,13 +203,13 @@ export async function GET(request: NextRequest) {
     }
 
     // First check Redis cache
-    const cached = await redis.get(`${role}: ${userId}`);
-    if (cached) {
-      return NextResponse.json({
-        message: "Public information retrieved from cache",
-        data: JSON.parse(cached),
-      });
-    }
+    // const cached = await redis.get(`${role}: ${userId}`);
+    // if (cached) {
+    //   return NextResponse.json({
+    //     message: "Public information retrieved from cache",
+    //     data: JSON.parse(cached),
+    //   });
+    // }
 
     // If not in cache, fetch from database
     const publicInformation = await prisma.publicInformation.findFirst({
@@ -226,7 +226,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Store in Redis cache for future requests
-    await redis.set(`${role}: ${userId}`, JSON.stringify(publicInformation));
+    // await redis.set(`${role}: ${userId}`, JSON.stringify(publicInformation));
 
     return NextResponse.json({
       message: "Public information retrieved successfully",
