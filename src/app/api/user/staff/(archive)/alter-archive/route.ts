@@ -33,17 +33,17 @@ export async function POST(request: Request) {
       const staffToUpdate = await tx.user.findMany({
         where: {
           companyId,
-          subRoles: {
-            not: "Admin",
-            contains: role,
-          },
-          archived: currentState,
+          // subRoles: {
+          //   not: "Admin",
+          // },
+          // archived: currentState,
         },
         select: {
           id: true,
           role: true,
         },
       });
+      // console.log("staffToUpdate", staffToUpdate);
 
       if (staffToUpdate.length === 0) {
         return {
@@ -57,6 +57,7 @@ export async function POST(request: Request) {
       // Update all matching staff
       const updateResult = await tx.user.updateMany({
         where: {
+          companyId,
           archived: currentState,
           role: {
             not: "Admin",
@@ -68,6 +69,8 @@ export async function POST(request: Request) {
           updatedAt: new Date(),
         },
       });
+
+      console.log("updateResult", updateResult);
 
       return {
         count: updateResult.count,
