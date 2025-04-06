@@ -95,7 +95,7 @@ export default function TeamEditPage() {
 
   const fetchStaff = useCallback(async () => {
     try {
-      const response = await axios.get("/api/user/user-details");
+      const response = await axios.get("/api/user/user-details?userRole=staff");
       if (!response.data?.data) {
         throw new Error("Invalid staff data format");
       }
