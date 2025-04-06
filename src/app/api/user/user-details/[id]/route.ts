@@ -2,70 +2,12 @@ import { ApiError, ApiErrors } from "@/utils/ApiError";
 import { ApiSuccess, HTTP_STATUS } from "@/utils/ApiSuccess";
 import prisma from "@/lib/prisma";
 import { NextRequest } from "next/server";
-// import redis from "@/lib/redis";
 
-// Helper function to determine if the record is a staff or client
 async function getRecordType(id: string) {
-  // Try to get data from Redis cache first
   try {
-    // Check if data exists in Redis
-    // const staffCacheData = await redis.get(`staff:${id}`);
-    // if (staffCacheData) {
-    //   console.log("Staff data retrieved from cache");
-    //   return { type: "staff", record: JSON.parse(staffCacheData) };
-    // }
+    console.log("Querying database for ID:", id);
 
-    // const clientCacheData = await redis.get(`client:${id}`);
-    // if (clientCacheData) {
-    //   console.log("Client data retrieved from cache");
-    //   return { type: "client", record: JSON.parse(clientCacheData) };
-    // }
-
-    // // If not in cache, query from database
-    console.log("Data not found in cache, querying database...");
-
-    // First check if it's a staff member (not a client)
-    await prisma.user.findFirst({
-      where: {
-        id,
-        role: { not: "client" },
-        archived: false,
-      },
-      include: {
-        personalDetails: true,
-        workDetails: true,
-        publicInformation: true,
-      },
-    });
-
-    // if (staff) {
-    //   await redis.set(`staff:${id}`, JSON.stringify(staff), "EX", 1200);
-    //   return { type: "staff", record: staff };
-    // }
-
-    // If not staff, check if it's a client
-    await prisma.user.findFirst({
-      where: {
-        id,
-        role: "client",
-        archived: false,
-      },
-      include: {
-        personalDetails: true,
-        publicInformation: true,
-      },
-    });
-
-    // if (client) {
-    //   await redis.set(`client:${id}`, JSON.stringify(client), "EX", 1200);
-    //   return { type: "client", record: client };
-    // }
-
-    return { type: null, record: null };
-  } catch (error) {
-    console.error("Error accessing cache:", error);
-
-    // If there's a Redis error, fall back to database query
+    // First check if it's a staff member
     const staff = await prisma.user.findFirst({
       where: {
         id,
@@ -80,9 +22,11 @@ async function getRecordType(id: string) {
     });
 
     if (staff) {
+      console.log("Found staff record");
       return { type: "staff", record: staff };
     }
 
+    // If not staff, check if it's a client
     const client = await prisma.user.findFirst({
       where: {
         id,
@@ -96,30 +40,38 @@ async function getRecordType(id: string) {
     });
 
     if (client) {
+      console.log("Found client record");
       return { type: "client", record: client };
     }
 
+    console.log("No record found for ID:", id);
     return { type: null, record: null };
+  } catch (error) {
+    console.error("Database query error:", error);
+    throw error; // Rethrow to handle in the main function
   }
 }
 
-// GET single record (staff or client) with all details
 export async function GET(request: NextRequest) {
   try {
-    const url = new URL(request.url);
-    const splittedUrl = url.toString().split("/");
-    const id = splittedUrl.at(-1);
+    // More reliable ID extraction
+    const searchParams = new URL(request.url).searchParams;
+    const id = searchParams.get("id") || request.url.split("/").pop();
 
     if (!id) {
+      console.error("No ID provided");
       return ApiError(
         new ApiErrors(HTTP_STATUS.BAD_REQUEST, "ID parameter is required")
       );
     }
 
+    console.log("Processing request for ID:", id);
+
     const { type, record } = await getRecordType(id);
 
     if (!record) {
-      throw new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found");
+      console.error("No record found for ID:", id);
+      return ApiError(new ApiErrors(HTTP_STATUS.NOT_FOUND, "Record not found"));
     }
 
     return ApiSuccess(
@@ -127,18 +79,17 @@ export async function GET(request: NextRequest) {
       `${type === "staff" ? "Staff" : "Client"} details retrieved successfully`
     );
   } catch (error: unknown) {
-    console.error("Error in GET details:", {
-      name: error instanceof Error ? error.name : "Unknown",
-      message: error instanceof Error ? error.message : "Unknown error",
-      stack: error instanceof Error ? error.stack : undefined,
-    });
+    console.error("Error in GET details:", error);
 
     if (error instanceof ApiErrors) {
       return ApiError(error);
     }
 
     return ApiError(
-      new ApiErrors(HTTP_STATUS.INTERNAL_SERVER_ERROR, "Error fetching details")
+      new ApiErrors(
+        HTTP_STATUS.INTERNAL_SERVER_ERROR,
+        error instanceof Error ? error.message : "Error fetching details"
+      )
     );
   }
 }

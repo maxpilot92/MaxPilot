@@ -259,8 +259,8 @@ function MenuItem({ item }: { item: MenuItemProps }) {
   const Icon = item.icon;
 
   const activeStyles = item.isActive
-    ? "bg-emerald-500 text-white"
-    : "text-[#726C6C] hover:bg-gray-100";
+    ? "bg-emerdald-500 text-swhite"
+    : "text-[#726Cc6C] hover:sbg-gray-100";
 
   if (!item.hasSubmenu) {
     return (
