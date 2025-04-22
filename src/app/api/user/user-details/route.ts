@@ -154,7 +154,6 @@ export async function POST(request: NextRequest) {
     if (!companyId) {
       companyId = data.companyId;
     }
-    console.log(data, "At create user");
     if (!(data.subRoles === "Admin")) {
       // Validate input data
       validatePersonalDetails(data.personalDetails);
@@ -243,7 +242,6 @@ export async function POST(request: NextRequest) {
           publicInformation: true,
         },
       });
-
       return newUser;
     });
 
@@ -251,10 +249,19 @@ export async function POST(request: NextRequest) {
 
     console.log("User cached in Redis");
 
-    return NextResponse.json(
+    const res = NextResponse.json(
       { message: "User created successfully", data: user },
       { status: 201 }
     );
+
+    res.headers.set(
+      "Set-Cookie",
+      `userId=${user.id}; Path=/; Max-Age=${
+        60 * 60 * 24 * 365 * 10
+      }; Secure; SameSite=Strict`
+    );
+
+    return res;
   } catch (error) {
     console.error("Error creating user:", error);
     if (error instanceof Error) {
@@ -346,6 +353,8 @@ export async function GET(request: NextRequest) {
         },
       }),
     };
+
+    console.log(where, "At where clause");
     // Get users and total count
     const [users, total] = await Promise.all([
       prisma.user.findMany({
@@ -363,7 +372,7 @@ export async function GET(request: NextRequest) {
       }),
       prisma.user.count({ where }),
     ]);
-
+    console.log(users, "At users");
     // Prepare response data
     const responseData = {
       data: users,

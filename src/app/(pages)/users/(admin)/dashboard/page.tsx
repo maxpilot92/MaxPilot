@@ -92,7 +92,6 @@ export default function Dashboard() {
       console.log("User details payload:", payload);
       try {
         const response = await axios.post("/api/user/user-details", payload);
-        localStorage.setItem("userId", response.data.userId);
         console.log("User details response:", response.data);
       } catch (error) {
         console.log("Error fetching user details:", error);

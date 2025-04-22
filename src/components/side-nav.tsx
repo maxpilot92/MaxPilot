@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-
+import Cookies from "js-cookie";
 import {
   Collapsible,
   CollapsibleContent,
@@ -35,6 +35,8 @@ import {
 import Logo from "@/../public/logo.svg";
 import { BASE_URL } from "@/utils/domain";
 import { useUser } from "@clerk/nextjs";
+import axios from "axios";
+import { get } from "http";
 
 const menuItems = [
   {
@@ -144,13 +146,38 @@ const menuItems = [
 
 export function SideNav({ children }: { children: React.ReactNode }) {
   const [userId, setUserId] = React.useState("");
-  const { user } = useUser();
+  const [shouldPay, setShouldPay] = React.useState(false);
 
   React.useEffect(() => {
-    if (user) {
-      setUserId(user.id);
-    }
-  }, [user]);
+    const id = Cookies.get("userId");
+    setUserId(id || "");
+  }, []);
+
+  React.useEffect(() => {
+    const getCurrentUser = async () => {
+      try {
+        const { data } = await axios.get(
+          `${BASE_URL}/api/user/user-details/${userId}`
+        );
+
+        const user = data?.data;
+        console.log(user[0].subscriptionEnd);
+        console.log(user[0].subscriptionPeriod);
+        if (
+          user &&
+          user[0].subscriptionEnd &&
+          user[0].subscriptionPeriod !== "Free_Trail"
+        ) {
+          const subscriptionEnd = new Date(user[0].subscriptionEnd);
+          setShouldPay(subscriptionEnd < new Date());
+        }
+      } catch (error) {
+        console.log("Failed to fetch current user:", error);
+      }
+    };
+
+    getCurrentUser();
+  }, []);
 
   return (
     <SidebarProvider>
@@ -178,34 +205,36 @@ export function SideNav({ children }: { children: React.ReactNode }) {
             </div>
           ))}
 
-          <Link
-            href="/pricing"
-            className="mt-4 mx-2 mb-4 rounded-md bg-green-50 p-3 text-center cursor-pointer"
-          >
-            <div className="flex flex-col items-center">
-              <div className="flex items-center text-green-500 font-medium mb-1">
-                Upgrade Now!{" "}
-                <span className="ml-1 inline-block">
-                  <svg
-                    width="16"
-                    height="16"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M7 17l9.2-9.2M17 17V7H7" />
-                  </svg>
-                </span>
+          {shouldPay && (
+            <Link
+              href="/pricing"
+              className="mt-4 mx-2 mb-4 rounded-md bg-green-50 p-3 text-center cursor-pointer"
+            >
+              <div className="flex flex-col items-center">
+                <div className="flex items-center text-green-500 font-medium mb-1">
+                  Upgrade Now!{" "}
+                  <span className="ml-1 inline-block">
+                    <svg
+                      width="16"
+                      height="16"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    >
+                      <path d="M7 17l9.2-9.2M17 17V7H7" />
+                    </svg>
+                  </span>
+                </div>
+                <div className="text-xs text-green-600">
+                  Your trial expires in{" "}
+                  <span className="font-medium">5-days</span>
+                </div>
               </div>
-              <div className="text-xs text-green-600">
-                Your trial expires in{" "}
-                <span className="font-medium">5-days</span>
-              </div>
-            </div>
-          </Link>
+            </Link>
+          )}
 
           <SidebarMenu className="mt-4">
             <SidebarMenuItem className="text-[#726C6C]">
